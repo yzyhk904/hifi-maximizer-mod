@@ -1,32 +1,31 @@
 ## A module for maximizing the digital audio fidelity by reducing jitters on audio outputs (USB DACs, Bluetooth a2dp, DLNA, etc.)
 
-Tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11, Qualcomm & MediaTek SoC, and Arm32 & arm64 combinations).  
-This module reduces jitters on audio outputs by optimizing kenel tunables(in CPU & GPU  governors, thermal control, CPU hotplug, I/O scheduler, Virtual memory), Selinux mode, WIFI parameters, etc. as follows,
+Tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11, Qualcomm & MediaTek SoC, and Arm32 & arm64 combinations). This module reduces jitters on audio outputs by optimizing kenel tunables(in CPU & GPU  governors, thermal control, CPU hotplug, I/O scheduler, Virtual memory), Selinux mode, WIFI parameters, etc. as follows,
 
 * For Reducing Jitters
-  1. CPU & GPU governor
+  1. CPU & GPU governor<br>
   	change their governors to performance.
-  2. I/O scheduler
+  2. I/O scheduler<br>
   	scheduler preference: deadline (cfq if deadline doesn't exist); optimize its tunables.
-  3. Virtual memory
+  3. Virtual memory<br>
   	change swappiness to 0%, laptop mode to 1,etc.
-  4. Thermal Control (if it exists)
+  4. Thermal Control (if it exists)<br>
   	disable core control.
-  5. CPU hotplug
+  5. CPU hotplug<br>
   	disable MPDecision.
-  6. Selinux mode
+  6. Selinux mode<br>
   	change the mode to permissive.
-  7. WIFI suspension
+  7. WIFI suspension<br>
   	disable wifi suspend optimizations.
-  9. Kill effect chains
+  9. Kill effect chains<br>
   	modify `/vendor/etc/audio_effects.xml` to disable equalizers, virtulizers, reverb's, etc.
-  11. Disable camera service
+  11. Disable camera service<br>
   	disable camera server interfering jitter on audio outputs.
 
 * For Convinience and Audio Quality
-  1. Disable DRC (Dynamic Range Control, or simply compression)
+  1. Disable DRC (Dynamic Range Control, or simply compression)<br>
   	modify `/vendor/etc/audio_policy_configuration.xml` to disable DRC.
-  2. Volume steps
+  2. Volume steps<br>
   	change the number of steps in media volume to 100 steps (0.4~0.7dB per step).
   
 * Please disable battery optimizations manually for app's through settings UI of Android OS as follows (to lower less than 10Hz jitter making vibrato like distortion)
