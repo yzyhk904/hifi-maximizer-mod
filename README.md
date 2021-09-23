@@ -35,7 +35,7 @@ music players, licensing apps, "bluetooth" (system app), "Android Services Libra
 
 * See also my companion script ["USB_SampleRate_Changer"](https://github.com/yzyhk904/USB_SampleRate_Changer) to change the sample rate of the USB (HAL) audio class driver on the fly like Bluetooth LDAC or Windows mixer to reduce resampling distortions.
 
-* Note: Please remember that this module will stop the thermal "core control" and the "camera server" (interfering jitter on audio outputs) on your device. If you like to disable these fatures, modify variables in "service.sh", respectively.
+* Note: Please remember that this module will stop the thermal "core control" and the "camera server" (interfering jitter on audio outputs), and disable SELinux enforcing mode on your device. If you like to disable these fatures, modify variables in "service.sh", respectively.
 
 ## DISCLAIMER
 
