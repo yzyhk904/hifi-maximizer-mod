@@ -68,11 +68,11 @@ function stopCameraService()
 {
   # Stop the camera servers
   if [ "`getprop init.svc.qcamerasvr`" = "running" ]; then
-    setprop ctl.stop qcamerasvr}
+    setprop ctl.stop qcamerasvr
     stop qcamerasvr
   fi
   if [ "`getprop init.svc.vendor.qcamerasvr`" = "running" ]; then
-    setprop ctl.stop vendor.qcamerasvr}
+    setprop ctl.stop vendor.qcamerasvr
     stop vendor.qcamerasvr
   fi
   if [ "`getprop init.svc.cameraserver`" = "running" ]; then
@@ -167,7 +167,7 @@ function setKernelTunables()
                 echo '25' >"/sys/block/$i/queue/iosched/fifo_batch"
                 echo '16' >"/sys/block/$i/queue/iosched/read_expire"
                 echo '473' >"/sys/block/$i/queue/iosched/write_expire"
-      	 echo '9400' >"/sys/block/$i/queue/nr_requests"
+      	 echo '9405' >"/sys/block/$i/queue/nr_requests"
                 ;;
              sdm* | msm* | sd* | exynos* )
                 echo '25' >"/sys/block/$i/queue/iosched/fifo_batch"
