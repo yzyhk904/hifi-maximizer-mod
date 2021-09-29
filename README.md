@@ -18,7 +18,7 @@ Tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11, Qualcomm 
   7. WIFI suspension<br>
   	disable wifi suspend optimizations.
   9. Kill effect chains<br>
-  	modify `/vendor/etc/audio_effects.xml` to disable equalizers, virtulizers, reverb's, etc.
+  	force ignoring `/vendor/etc/audio_effects.xml` to disable equalizers, virtulizers, reverb's, visualizer, etc.
   11. Disable camera service<br>
   	disable "camera server" interfering jitter on audio outputs.
   12. Disable MediaTek EAS+ scheduler<br>

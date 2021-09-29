@@ -2,7 +2,6 @@
 
 # Replace audio policy configuration files (default)
   REPLACE="
-/system/vendor/etc/audio_effects.xml
 /system/vendor/etc/r_submix_audio_policy_configuration.xml
 /system/vendor/etc/usb_audio_policy_configuration.xml
 "

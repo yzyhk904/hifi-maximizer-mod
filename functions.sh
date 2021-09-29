@@ -49,10 +49,8 @@ function stopMPDecision()
   # Stop the MPDecision (CPU hotplug)
   if [ "`getprop init.svc.mpdecision`" = "running" ]; then
     setprop ctl.stop mpdecision
-    stop mpdecision
   elif [ "`getprop init.svc.vendor.mpdecision`" = "running" ]; then
     setprop ctl.stop vendor.mpdecision
-    stop vendor.mpdecision
   fi
 }
 
@@ -69,23 +67,18 @@ function stopCameraService()
   # Stop the camera servers
   if [ "`getprop init.svc.qcamerasvr`" = "running" ]; then
     setprop ctl.stop qcamerasvr
-    stop qcamerasvr
   fi
   if [ "`getprop init.svc.vendor.qcamerasvr`" = "running" ]; then
     setprop ctl.stop vendor.qcamerasvr
-    stop vendor.qcamerasvr
   fi
   if [ "`getprop init.svc.cameraserver`" = "running" ]; then
     setprop ctl.stop cameraserver
-    stop cameraserver
   fi
   if [ "`getprop init.svc.camerasloganserver`" = "running" ]; then
     setprop ctl.stop camerasloganserver
-    stop camerasloganserver
   fi
   if [ "`getprop init.svc.camerahalserver`" = "running" ]; then
     setprop ctl.stop camerahalserver
-    stop camerahalserver
   fi
 }
 
@@ -136,6 +129,7 @@ function setKernelTunables()
     if [ -e "/sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor" ]; then
       chmod 644 "/sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor"
       echo 'performance' >"/sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor"
+      chmod 644 "/sys/devices/system/cpu/cpu$i/online"
       echo '1' >"/sys/devices/system/cpu/cpu$i/online"
       echo 'performance' >"/sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor"
     fi
@@ -147,7 +141,7 @@ function setKernelTunables()
     echo 'performance' >"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
   fi
   # I/O scheduler
-  for i in sda sdb mmcblk0 mmcblk1; do
+  for i in sda mmcblk0 mmcblk1; do
     if [ -d "/sys/block/$i/queue" ]; then
       echo '8192' >"/sys/block/$i/queue/read_ahead_kb"
       echo '0' >"/sys/block/$i/queue/iostats"
