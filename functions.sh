@@ -56,9 +56,13 @@ function stopMPDecision()
 
 function stopThermalCoreControl()
 {
-  # Stop the thermal core control
+  # Stop the thermal core control (for Qualcomm)
   if [ -w "/sys/module/msm_thermal/core_control/enabled" ]; then
     echo '0' >"/sys/module/msm_thermal/core_control/enabled"
+  fi
+  # Stop thermal server (for MediaTek)
+  if [ "`getprop init.svc.thermal`" = "running" ]; then
+    setprop ctl.stop thermal
   fi
 }
 
