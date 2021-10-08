@@ -162,28 +162,28 @@ function setKernelTunables()
           echo '0' >"/sys/block/$i/queue/iosched/writes_starved"
           case "`getprop ro.board.platform`" in
              sdm8* |  sdm7* )
-                echo '25' >"/sys/block/$i/queue/iosched/fifo_batch"
+                echo '33' >"/sys/block/$i/queue/iosched/fifo_batch"
                 echo '16' >"/sys/block/$i/queue/iosched/read_expire"
-                echo '473' >"/sys/block/$i/queue/iosched/write_expire"
-      	 echo '9405' >"/sys/block/$i/queue/nr_requests"
+                echo '476' >"/sys/block/$i/queue/iosched/write_expire"
+      	 echo '13920' >"/sys/block/$i/queue/nr_requests"
                 ;;
              sdm* | msm* | sd* | exynos* )
-                echo '25' >"/sys/block/$i/queue/iosched/fifo_batch"
+                echo '33' >"/sys/block/$i/queue/iosched/fifo_batch"
                 echo '16' >"/sys/block/$i/queue/iosched/read_expire"
-                echo '473' >"/sys/block/$i/queue/iosched/write_expire"
-      	 echo '9410' >"/sys/block/$i/queue/nr_requests"
+                echo '476' >"/sys/block/$i/queue/iosched/write_expire"
+      	 echo '14210' >"/sys/block/$i/queue/nr_requests"
                 ;;
              mt68* )
-                echo '24' >"/sys/block/$i/queue/iosched/fifo_batch"
+                echo '33' >"/sys/block/$i/queue/iosched/fifo_batch"
                 echo '16' >"/sys/block/$i/queue/iosched/read_expire"
-                echo '472' >"/sys/block/$i/queue/iosched/write_expire"
-      	 echo '9405' >"/sys/block/$i/queue/nr_requests"
+                echo '476' >"/sys/block/$i/queue/iosched/write_expire"
+      	 echo '13920' >"/sys/block/$i/queue/nr_requests"
                 ;;
              mt* | * )
-                echo '24' >"/sys/block/$i/queue/iosched/fifo_batch"
+                echo '33' >"/sys/block/$i/queue/iosched/fifo_batch"
                 echo '16' >"/sys/block/$i/queue/iosched/read_expire"
-                echo '472' >"/sys/block/$i/queue/iosched/write_expire"
-      	 echo '9400' >"/sys/block/$i/queue/nr_requests"
+                echo '476' >"/sys/block/$i/queue/iosched/write_expire"
+      	 echo '14210' >"/sys/block/$i/queue/nr_requests"
                 ;;
           esac
           ;;
@@ -196,15 +196,15 @@ function setKernelTunables()
           echo '1' >"/sys/block/$i/queue/iosched/low_latency"
           echo '1' >"/sys/block/$i/queue/iosched/quantum"
           echo '3' >"/sys/block/$i/queue/iosched/slice_async"
-          echo '20' >"/sys/block/$i/queue/iosched/slice_async_rq"
+          echo '23' >"/sys/block/$i/queue/iosched/slice_async_rq"
           echo '0' >"/sys/block/$i/queue/iosched/slice_idle"
           echo '3' >"/sys/block/$i/queue/iosched/slice_sync"
           echo '3' >"/sys/block/$i/queue/iosched/target_latency"
-     	  echo '9400' >"/sys/block/$i/queue/nr_requests"
+     	  echo '14210' >"/sys/block/$i/queue/nr_requests"
           ;;
         "noop" )
           echo 'noop' >"/sys/block/$i/queue/scheduler"
-     	   echo '9400' >"/sys/block/$i/queue/nr_requests"
+     	   echo '14210' >"/sys/block/$i/queue/nr_requests"
           ;;
          * )
             #  an empty string or unknown I/O schedulers
