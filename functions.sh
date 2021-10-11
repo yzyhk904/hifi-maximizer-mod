@@ -161,29 +161,29 @@ function setKernelTunables()
           echo '0' >"/sys/block/$i/queue/iosched/front_merges"
           echo '0' >"/sys/block/$i/queue/iosched/writes_starved"
           case "`getprop ro.board.platform`" in
-             sdm8* |  sdm7* )
+             sdm9* | sdm8* |  sdm7* )
                 echo '33' >"/sys/block/$i/queue/iosched/fifo_batch"
                 echo '16' >"/sys/block/$i/queue/iosched/read_expire"
                 echo '476' >"/sys/block/$i/queue/iosched/write_expire"
-      	 echo '13920' >"/sys/block/$i/queue/nr_requests"
+      	 echo '30000' >"/sys/block/$i/queue/nr_requests"
                 ;;
              sdm* | msm* | sd* | exynos* )
                 echo '33' >"/sys/block/$i/queue/iosched/fifo_batch"
                 echo '16' >"/sys/block/$i/queue/iosched/read_expire"
                 echo '476' >"/sys/block/$i/queue/iosched/write_expire"
-      	 echo '14210' >"/sys/block/$i/queue/nr_requests"
+      	 echo '30000' >"/sys/block/$i/queue/nr_requests"
                 ;;
-             mt68* )
+             mt69* | mt68* )
                 echo '33' >"/sys/block/$i/queue/iosched/fifo_batch"
                 echo '16' >"/sys/block/$i/queue/iosched/read_expire"
                 echo '476' >"/sys/block/$i/queue/iosched/write_expire"
-      	 echo '13920' >"/sys/block/$i/queue/nr_requests"
+      	 echo '30000' >"/sys/block/$i/queue/nr_requests"
                 ;;
              mt* | * )
                 echo '33' >"/sys/block/$i/queue/iosched/fifo_batch"
                 echo '16' >"/sys/block/$i/queue/iosched/read_expire"
                 echo '476' >"/sys/block/$i/queue/iosched/write_expire"
-      	 echo '14210' >"/sys/block/$i/queue/nr_requests"
+      	 echo '30000' >"/sys/block/$i/queue/nr_requests"
                 ;;
           esac
           ;;
@@ -200,11 +200,11 @@ function setKernelTunables()
           echo '0' >"/sys/block/$i/queue/iosched/slice_idle"
           echo '3' >"/sys/block/$i/queue/iosched/slice_sync"
           echo '3' >"/sys/block/$i/queue/iosched/target_latency"
-     	  echo '14210' >"/sys/block/$i/queue/nr_requests"
+     	  echo '30000' >"/sys/block/$i/queue/nr_requests"
           ;;
         "noop" )
           echo 'noop' >"/sys/block/$i/queue/scheduler"
-     	   echo '14210' >"/sys/block/$i/queue/nr_requests"
+     	   echo '30000' >"/sys/block/$i/queue/nr_requests"
           ;;
          * )
             #  an empty string or unknown I/O schedulers
