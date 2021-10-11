@@ -30,7 +30,7 @@ Tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11, Qualcomm 
   2. Volume steps<br>
   	change the number of steps in media volume to 100 steps (0.4~0.7dB per step).
   
-* Please disable battery optimizations for following app's manually through the settings UI of Android OS (to lower less than 10Hz jitter making reverb like distortions). music players, their licensing apps, "bluetooth" (system app), "Android Services Library", "Android Shared Library", "Android System", launcher app, "Google Play Services", "Magisk", "PhhTrebleApp", keyboard app, kernel adiutor, etc.
+* Please disable battery optimizations for following app's manually through the settings UI of Android OS (to lower less than 10Hz jitter making reverb like distortions). music (streaming) player apps, their licensing apps (if exist), "bluetooth" (system app), "Android Services Library" (system app), "Android Shared Library" (system app), "Android System" (system app), launcher app, "Google Play Services", "Magisk", "PhhTrebleApp", keyboard app, kernel adiutor, etc.
 
 
 * See also my companion script ["USB_SampleRate_Changer"](https://github.com/yzyhk904/USB_SampleRate_Changer) to change the sample rate of the USB (HAL) audio class driver on the fly like Bluetooth LDAC or Windows mixer to reduce resampling distortions.
