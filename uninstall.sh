@@ -14,4 +14,4 @@ MODDIR=${0%/*}
 
 # sleep 20 secs needed for settings commans to be effective in an orphan process
 
- (((sleep 20; unsetHifiNetwork; unsetVolumeMediaSteps) 0<&- &>"/dev/null" &) &)
+(((sleep 20; unsetHifiNetwork; unsetVolumeMediaSteps) 0<&- &>"/dev/null" &) &)
