@@ -118,6 +118,15 @@ function forceIgnoreAudioEffects()
             setprop ctl.restart audioserver
         fi
         
+    elif [ "`getprop ro.system.build.version.release`" -ge "12" ]; then
+        
+        local audioHal
+        setprop ctl.restart audioserver
+        audioHal="$(getprop |sed -nE 's/.*init\.svc\.(.*audio-hal[^]]*).*/\1/p')"
+        setprop ctl.restart "$audioHal" 1>"/dev/null" 2>&1
+        setprop ctl.restart vendor.audio-hal-2-0 1>"/dev/null" 2>&1
+        setprop ctl.restart audio-hal-2-0 1>"/dev/null" 2>&1
+        
     fi
 }
 
@@ -185,17 +194,23 @@ function setKernelTunables()
                     echo '0' >"/sys/block/$i/queue/iosched/front_merges"
                     echo '0' >"/sys/block/$i/queue/iosched/writes_starved"
                     case "`getprop ro.board.platform`" in
-                        sdm* | msm* | sd* | exynos* )
-                            echo '35' >"/sys/block/$i/queue/iosched/fifo_batch"
+                        sdm8* )
+                            echo '36' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '13' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '480' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '60500' >"/sys/block/$i/queue/nr_requests"
+                            echo '67050' >"/sys/block/$i/queue/nr_requests"
+                            ;;
+                        sdm* | msm* | sd* | exynos* )
+                            echo '37' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '13' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '480' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '66050' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt* | * )
-                            echo '35' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '37' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '12' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '480' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '60000' >"/sys/block/$i/queue/nr_requests"
+                            echo '65500' >"/sys/block/$i/queue/nr_requests"
                             ;;
                     esac
                     ;;
@@ -208,7 +223,7 @@ function setKernelTunables()
                     echo '1' >"/sys/block/$i/queue/iosched/low_latency"
                     echo '1' >"/sys/block/$i/queue/iosched/quantum"
                     echo '3' >"/sys/block/$i/queue/iosched/slice_async"
-                    echo '23' >"/sys/block/$i/queue/iosched/slice_async_rq"
+                    echo '24' >"/sys/block/$i/queue/iosched/slice_async_rq"
                     echo '0' >"/sys/block/$i/queue/iosched/slice_idle"
                     echo '3' >"/sys/block/$i/queue/iosched/slice_sync"
                     echo '3' >"/sys/block/$i/queue/iosched/target_latency"
