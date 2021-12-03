@@ -4,7 +4,7 @@ Tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11, Qualcomm 
 
 * For Reducing Jitters
   1. CPU & GPU governor<br>
-  	change their governors to "performance".
+  	change their governors to "performance" (additionally fixed at the max frequency).
   2. I/O scheduler<br>
   	scheduler preference: "deadline" ("cfq" if "deadline" doesn't exist); optimize its tunables.
   3. Virtual memory<br>
@@ -30,7 +30,7 @@ Tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11, Qualcomm 
   2. Volume steps<br>
   	change the number of steps in media volume to 100 steps (0.4~0.7dB per step).
   
-* Please disable "Adaptive battery" of adaptive preferences in the battery section and battery optimizations for following app's manually through the settings UI of Android OS (to lower less than 10Hz jitter making reverb like distortions). music (streaming) player apps, their licensing apps (if exist), equalizer apps (if exist), "bluetooth" (system app), "Android Services Library" (system app), "Android Shared Library" (system app), "Android System" (system app), "crDroid System" (system app; if exists), "LineageOS System" (system app; if exists), launcher app, "Google Play Store" (system app), "Google Play Developer Services" (system app), "Magisk", "PhhTrebleApp"(system app; if exists), keyboard app, kernel adiutors (if exist), etc.
+* Please disable "Adaptive battery" of adaptive preferences in the battery section and battery optimizations for following app's manually through the settings UI of Android OS (to lower less than 10Hz jitter making reverb like distortion). music (streaming) player apps, their licensing apps (if exist), equalizer apps (if exist), "bluetooth" (system app), "Android Services Library" (system app), "Android Shared Library" (system app), "Android System" (system app), "System UI" (system app), "crDroid System" (system app; if exists), "LineageOS System" (system app; if exists), launcher app, "Google Play Store" (system app), "Google Play Developer Services" (system app), "Styles & wallpaper" or the like (system app), "AOSP panel" (system app; if exists), "OmniJaws" (system app; if exists), "OmniStyle" (system app; if exists), "Magisk", "PhhTrebleApp"(system app; if exists), keyboard app, kernel adiutors (if exist), etc.
 
 
 * See also my companion script ["USB_SampleRate_Changer"](https://github.com/yzyhk904/USB_SampleRate_Changer) to change the sample rate of the USB (HAL) audio class driver on the fly like Bluetooth LDAC or Windows mixer to reduce resampling distortions.
@@ -55,5 +55,6 @@ Tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11, Qualcomm 
 * Moved scattered functions into "functions.sh" together, and treated IO Schedulers more rigorously
 # v2.0
 * Supported audio policy configuration XML files for "disable a2dp offload", "force-disable a2dp offload", and so on
-
+# v2.1
+* The GPU frequency became to be fixed really at the max frequency for Qualcomm Soc and MediaTek SoC
 ##

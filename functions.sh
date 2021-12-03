@@ -172,9 +172,28 @@ function setKernelTunables()
     
     # GPU governor
     if [ -w "/sys/class/kgsl/kgsl-3d0/pwrscale/trustzone/governor" ]; then
+        # For old Qcomm GPU's
         echo 'performance' >"/sys/class/kgsl/kgsl-3d0/pwrscale/trustzone/governor"
+        if [ -w "/sys/class/kgsl/kgsl-3d0/min_pwrlevel" ]; then
+            # Set the min power level to be maximum
+            echo "0" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+        fi
     elif [ -w "/sys/class/kgsl/kgsl-3d0/devfreq/governor" ]; then
+        # For Qcomm GPU's
         echo 'performance' >"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
+        if [ -w "/sys/class/kgsl/kgsl-3d0/min_pwrlevel" ]; then
+            # Set the min power level to be maximum
+            echo "0" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+        fi
+    elif [ -w "/proc/gpufreq/gpufreq_opp_freq"  -a  -r "/proc/gpufreq/gpufreq_opp_dump" ]; then
+        # Maximum fixed frequency setting for MediaTek GPU's
+        local x1 x2 x3 x4 x5 freq="" IFS=" ,"
+        
+        read x1 x2 x3 x4 x5 <"/proc/gpufreq/gpufreq_opp_dump"
+        freq="$x4"
+        if [ -n "$freq" ]; then
+            echo "$freq" >"/proc/gpufreq/gpufreq_opp_freq"
+        fi
     fi
     
     # I/O scheduler
@@ -195,22 +214,22 @@ function setKernelTunables()
                     echo '0' >"/sys/block/$i/queue/iosched/writes_starved"
                     case "`getprop ro.board.platform`" in
                         sdm8* )
-                            echo '36' >"/sys/block/$i/queue/iosched/fifo_batch"
-                            echo '13' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '37' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '16' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '480' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '67050' >"/sys/block/$i/queue/nr_requests"
+                            echo '76000' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         sdm* | msm* | sd* | exynos* )
                             echo '37' >"/sys/block/$i/queue/iosched/fifo_batch"
-                            echo '13' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '16' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '480' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '66050' >"/sys/block/$i/queue/nr_requests"
+                            echo '76000' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt* | * )
                             echo '37' >"/sys/block/$i/queue/iosched/fifo_batch"
-                            echo '12' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '16' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '480' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '65500' >"/sys/block/$i/queue/nr_requests"
+                            echo '76000' >"/sys/block/$i/queue/nr_requests"
                             ;;
                     esac
                     ;;
@@ -223,15 +242,15 @@ function setKernelTunables()
                     echo '1' >"/sys/block/$i/queue/iosched/low_latency"
                     echo '1' >"/sys/block/$i/queue/iosched/quantum"
                     echo '3' >"/sys/block/$i/queue/iosched/slice_async"
-                    echo '24' >"/sys/block/$i/queue/iosched/slice_async_rq"
+                    echo '25' >"/sys/block/$i/queue/iosched/slice_async_rq"
                     echo '0' >"/sys/block/$i/queue/iosched/slice_idle"
                     echo '3' >"/sys/block/$i/queue/iosched/slice_sync"
                     echo '3' >"/sys/block/$i/queue/iosched/target_latency"
-                    echo '30250' >"/sys/block/$i/queue/nr_requests"
+                    echo '60550' >"/sys/block/$i/queue/nr_requests"
                     ;;
                 "noop" )
                     echo 'noop' >"/sys/block/$i/queue/scheduler"
-                    echo '30250' >"/sys/block/$i/queue/nr_requests"
+                    echo '60550' >"/sys/block/$i/queue/nr_requests"
                     ;;
                 * )
                     #  an empty string or unknown I/O schedulers
