@@ -199,7 +199,7 @@ function setKernelTunables()
     # I/O scheduler
     for i in sda mmcblk0 mmcblk1; do
         if [ -d "/sys/block/$i/queue" ]; then
-            echo '8192' >"/sys/block/$i/queue/read_ahead_kb"
+            echo '10240' >"/sys/block/$i/queue/read_ahead_kb"
             echo '0' >"/sys/block/$i/queue/iostats"
             echo '0' >"/sys/block/$i/queue/add_random"
             echo '2' >"/sys/block/$i/queue/rq_affinity"
@@ -217,19 +217,19 @@ function setKernelTunables()
                             echo '37' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '16' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '480' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '76000' >"/sys/block/$i/queue/nr_requests"
+                            echo '77600' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         sdm* | msm* | sd* | exynos* )
                             echo '37' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '16' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '480' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '76000' >"/sys/block/$i/queue/nr_requests"
+                            echo '77130' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt* | * )
                             echo '37' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '16' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '480' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '76000' >"/sys/block/$i/queue/nr_requests"
+                            echo '77500' >"/sys/block/$i/queue/nr_requests"
                             ;;
                     esac
                     ;;
@@ -246,11 +246,11 @@ function setKernelTunables()
                     echo '0' >"/sys/block/$i/queue/iosched/slice_idle"
                     echo '3' >"/sys/block/$i/queue/iosched/slice_sync"
                     echo '3' >"/sys/block/$i/queue/iosched/target_latency"
-                    echo '60550' >"/sys/block/$i/queue/nr_requests"
+                    echo '62375' >"/sys/block/$i/queue/nr_requests"
                     ;;
                 "noop" )
                     echo 'noop' >"/sys/block/$i/queue/scheduler"
-                    echo '60550' >"/sys/block/$i/queue/nr_requests"
+                    echo '61675' >"/sys/block/$i/queue/nr_requests"
                     ;;
                 * )
                     #  an empty string or unknown I/O schedulers
@@ -266,9 +266,15 @@ function setKernelTunables()
     fi
     echo '50' >"/proc/sys/vm/dirty_ratio"
     echo '25' >"/proc/sys/vm/dirty_background_ratio"
-    echo '60000' >"/proc/sys/vm/dirty_expire_centisecs"
-    echo '11100' >"/proc/sys/vm/dirty_writeback_centisecs"
+    echo '600000' >"/proc/sys/vm/dirty_expire_centisecs"
+    echo '111000' >"/proc/sys/vm/dirty_writeback_centisecs"
     echo '1' >"/proc/sys/vm/laptop_mode"
+    if [ -w "/proc/sys/vm/swap_ratio" ]; then
+        echo '0' >"/proc/sys/vm/swap_ratio"
+    fi
+    if [ -w "/proc/sys/vm/swap_ratio_enable" ]; then
+        echo '1' >"/proc/sys/vm/swap_ratio_enable"
+    fi
 
     # For MediaTek CPUs, stop EAS+ scheduling to reduce jitters
     if [ -w "/proc/cpufreq/cpufreq_sched_disable" ]; then
