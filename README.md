@@ -1,6 +1,6 @@
 ## A Magisk module for maximizing the digital audio fidelity by reducing jitters on audio outputs (USB DACs, Bluetooth a2dp, DLNA, etc.)
 
-Tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11, Qualcomm & MediaTek SoC, and Arm32 & arm64 combinations). This module reduces jitters on audio outputs by optimizing kenel tunables (in CPU & GPU  governors, thermal control, CPU hotplug, I/O scheduler, Virtual memory), Selinux mode, WIFI parameters, etc. as follows,
+Tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11, Qualcomm & MediaTek SoC, and Arm32 & Arm64 combinations). This module reduces jitters on audio outputs by optimizing kenel tunables (in CPU & GPU  governors, thermal control, CPU hotplug, I/O scheduler, Virtual memory), Selinux mode, WIFI parameters, etc. as follows,
 
 * For Reducing Jitters
   1. CPU & GPU governor<br>
