@@ -1,6 +1,6 @@
 ## A Magisk module for maximizing the digital audio fidelity by reducing jitters on audio outputs (USB DACs, Bluetooth a2dp, DLNA, etc.)
 
-Tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11, Qualcomm & MediaTek SoC, and Arm32 & Arm64 combinations). This module reduces jitters on audio outputs by optimizing kenel tunables (in CPU & GPU  governors, thermal control, CPU hotplug, I/O scheduler, Virtual memory), Selinux mode, WIFI parameters, etc. as follows,
+This module reduces jitters on audio outputs by optimizing kenel tunables (in CPU & GPU  governors, thermal control, CPU hotplug, I/O scheduler, Virtual memory), Selinux mode, WIFI parameters, etc. as follows,
 
 * For Reducing Jitters
   1. CPU & GPU governor<br>
@@ -29,6 +29,8 @@ Tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11, Qualcomm 
   	modify `/vendor/etc/audio_policy_configuration.xml` to disable DRC.
   2. Volume steps<br>
   	change the number of steps in media volume to 100 steps (0.4~0.7dB per step).
+
+* This module has been tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11 & 12, Qualcomm & MediaTek SoC, and Arm32 & Arm64 combinations). 
   
 * Please disable "Adaptive battery" of adaptive preferences in the battery section and battery optimizations for following app's manually through the settings UI of Android OS (to lower less than 10Hz jitter making reverb like distortion). music (streaming) player apps, their licensing apps (if exist), equalizer apps (if exist), "bluetooth" (system app), "Android Services Library" (system app), "Android Shared Library" (system app), "Android System" (system app), "System UI" (system app), "Active Edge Service" (system app; if exists), "Android Device Security Module" (system app; if exists), "crDroid System" (system app; if exists), "LineageOS System" (system app; if exists), launcher app, "Google Play Store" (system app), "Google Play Developer Services" (system app), "Styles & wallpaper" or the like (system app), {Lineage, crDroid, Arrow, etc.} themes app (system app; if exists), Navigation Bar app (system app; if exists), "AOSP panel" (system app; if exists), "OmniJaws" (system app; if exists), "OmniStyle" (system app; if exists), "Magisk", "PhhTrebleApp"(system app; if exists), keyboard app, kernel adiutors (if exist), etc. And also Disable "Digital Wellbeing" (system app; if it exists) itself or its battery optimizations (this is very harmfull for audio like camera servers).
 
