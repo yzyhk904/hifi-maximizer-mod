@@ -23,12 +23,14 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (in CP
   	disable "camera server" interfering jitter on audio outputs.
   12. Disable MediaTek EAS+ scheduler<br>
   	`echo '1' > "/proc/cpufreq/cpufreq_sched_disable"`
-    
+
 * For Convinience and Audio Quality
   1. Disable DRC (Dynamic Range Control, or simply compression)<br>
   	modify `/vendor/etc/audio_policy_configuration.xml` to disable DRC.
   2. Volume steps<br>
   	change the number of steps in media volume to 100 steps (0.4~0.7dB per step).
+  3. Resampling quality<br>
+  	change AudioFlinger's resampling tunable values from stopband attenation 98dB and cut off 100% to 140db and 91%, respectively.
 
 <br/><br/>
 
