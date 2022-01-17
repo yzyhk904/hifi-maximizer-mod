@@ -25,12 +25,12 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
   	`echo '1' > "/proc/cpufreq/cpufreq_sched_disable"`
 
 * For Convinience and Audio Quality
-  1. Disable DRC (Dynamic Range Control, or simply compression)<br>
-  	modify `/vendor/etc/audio_policy_configuration.xml` to disable DRC.
+  1. Disable DRC (Dynamic Range Control, i.e. compression)<br>
+  	modify `/vendor/etc/audio_policy_configuration.xml` to disable DRC if DRC has been enabled in a stock firmware.
   2. Volume steps<br>
   	change the number of steps in media volume to 100 steps (0.4~0.7dB per step).
   3. Resampling quality<br>
-  	change AudioFlinger's resampling tunable values from stopband attenuation 90dB and cut off 100% to 140db and 91%, respectively.
+  	change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% to Nyquist frequency) to a mastering quality (140db & 91%, i.e. no distortion in a real sense).
 
 <br/><br/>
 

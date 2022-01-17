@@ -1,9 +1,8 @@
 #!/system/bin/sh
 
-# Replace audio policy configuration files (default)
+# Replace rsumbix audio policy configuration file (default)
 REPLACE="
 /system/vendor/etc/r_submix_audio_policy_configuration.xml
-/system/vendor/etc/usb_audio_policy_configuration.xml
 "
 . "$MODPATH/functions.sh"
 
@@ -34,13 +33,10 @@ case "$configXML" in
         ;;
 esac
 
-# In case of phh GSI, overlay "/system/etc/usb_audio_policy_configuration.xml"
-if [ -e "/system/etc/usb_audio_policy_configuration.xml" ]; then
-    if [ ! -e "$MODPATH/system/etc" ]; then
-        mkdir "$MODPATH/system/etc"
-        cp "$MODPATH/system/vendor/etc/usb_audio_policy_configuration.xml" "$MODPATH/system/etc/usb_audio_policy_configuration.xml"
-        chmod a+rx "$MODPATH/system/etc"
-        chmod 644 "$MODPATH/system/etc/usb_audio_policy_configuration.xml"
-    fi
-        REPLACE="$REPLACE /system/etc/usb_audio_policy_configuration.xml"
+# Replace the value of "ro.audio.usb.period_us"
+
+if "$IS64BIT"; then
+ :
+else
+  sed -i 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=5600/' "$MODPATH/system.prop"
 fi
