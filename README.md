@@ -30,7 +30,7 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
   2. Volume steps<br>
   	change the number of steps in media volume to 100 steps (0.4~0.7dB per step).
   3. Resampling quality<br>
-  	change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% to Nyquist frequency) to a mastering quality (140db & 91%, i.e. no distortion in a real sense).
+  	change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% of Nyquist frequency) to a mastering quality (160db & 91%, i.e. no resampling distortion in a real sense even though the 160dB targeted attenuation is not accomplished in the AOSP implementation).
 
 <br/><br/>
 
