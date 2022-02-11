@@ -13,8 +13,8 @@ case "$configXML" in
     /vendor/etc/* )
         # If DRC enabled, modify audio policy configuration to stopt DRC
         MAGISKPATH="$(magisk --path)"
-        if [ -n "$MAGISKPATH"  -a  -r "$MAGISKPATH/.magisk/mirror/system${configXML}" ]; then
-            mirrorConfigXML="$MAGISKPATH/.magisk/mirror/system${configXML}"
+        if [ -n "$MAGISKPATH"  -a  -r "$MAGISKPATH/.magisk/mirror${configXML}" ]; then
+            mirrorConfigXML="$MAGISKPATH/.magisk/mirror${configXML}"
         else
             mirrorConfigXML="$configXML"
         fi
@@ -33,13 +33,22 @@ case "$configXML" in
         ;;
 esac
 
-# Replace the value of "ro.audio.usb.period_us"
+# Replace system property values for some low performance SoC's
+
+function replaceSystemProps()
+{
+    sed -i \
+        -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=5600/' \
+        -e 's/ro\.audio\.resampler\.psd\.halflength=.*$/ro\.audio\.resampler\.psd\.halflength=320/' \
+            "$MODPATH/system.prop"
+}
 
 if "$IS64BIT"; then
- :
+    case "`getprop ro.board.platform`" in
+        mt67[56]? )
+            replaceSystemProps
+            ;;
+    esac
 else
-  sed -i \
-    -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=5600/' \
-    -e 's/ro\.audio\.resampler\.psd\.halflength=.*$/ro\.audio\.resampler\.psd\.halflength=320/' \
-        "$MODPATH/system.prop"
+    replaceSystemProps
 fi

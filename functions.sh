@@ -214,22 +214,28 @@ function setKernelTunables()
                     echo '0' >"/sys/block/$i/queue/iosched/writes_starved"
                     case "`getprop ro.board.platform`" in
                         sdm8* )
-                            echo '38' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '41' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '16' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '483' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '79120' >"/sys/block/$i/queue/nr_requests"
+                            echo '79750' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         sdm* | msm* | sd* | exynos* )
-                            echo '39' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '41' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '16' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '480' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '78150' >"/sys/block/$i/queue/nr_requests"
+                            echo '483' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '79516' >"/sys/block/$i/queue/nr_requests"
+                            ;;
+                        mt67* )
+                            echo '41' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '16' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '484' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '79600' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt* | * )
-                            echo '39' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '41' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '16' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '480' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '78550' >"/sys/block/$i/queue/nr_requests"
+                            echo '484' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '79516' >"/sys/block/$i/queue/nr_requests"
                             ;;
                     esac
                     ;;
