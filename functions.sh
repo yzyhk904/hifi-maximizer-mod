@@ -229,7 +229,7 @@ function setKernelTunables()
                             echo '41' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '16' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '484' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '79600' >"/sys/block/$i/queue/nr_requests"
+                            echo '79601' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt* | * )
                             echo '41' >"/sys/block/$i/queue/iosched/fifo_batch"

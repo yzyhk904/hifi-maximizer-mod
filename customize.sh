@@ -14,6 +14,9 @@ case "$configXML" in
         # If DRC enabled, modify audio policy configuration to stopt DRC
         MAGISKPATH="$(magisk --path)"
         if [ -n "$MAGISKPATH"  -a  -r "$MAGISKPATH/.magisk/mirror${configXML}" ]; then
+            
+            # Don't use "$MAGISKPATH/.magisk/mirror/system${configXML}" instead of "$MAGISKPATH/.magisk/mirror${configXML}".
+            # In some cases, the former may link to overlaied "${configXML}" by Magisk itself (not original mirrored "${configXML}".
             mirrorConfigXML="$MAGISKPATH/.magisk/mirror${configXML}"
         else
             mirrorConfigXML="$configXML"
