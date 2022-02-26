@@ -1,6 +1,6 @@
 #!/system/bin/sh
 
-# Replace rsumbix audio policy configuration file (default)
+# Replace r_submix audio policy configuration file (default)
 REPLACE="
 /system/vendor/etc/r_submix_audio_policy_configuration.xml
 "

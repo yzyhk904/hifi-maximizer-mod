@@ -214,34 +214,34 @@ function setKernelTunables()
                     echo '0' >"/sys/block/$i/queue/iosched/writes_starved"
                     case "`getprop ro.board.platform`" in
                         sdm8* )
-                            echo '42' >"/sys/block/$i/queue/iosched/fifo_batch"
-                            echo '16' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '483' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '79987' >"/sys/block/$i/queue/nr_requests"
+                            echo '43' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '20' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '496' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '81000' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         sdm* | msm* | sd* | exynos* )
-                            echo '42' >"/sys/block/$i/queue/iosched/fifo_batch"
-                            echo '16' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '483' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '79887' >"/sys/block/$i/queue/nr_requests"
+                            echo '43' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '20' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '496' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '80900' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt68* )
-                            echo '42' >"/sys/block/$i/queue/iosched/fifo_batch"
-                            echo '16' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '484' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '79795' >"/sys/block/$i/queue/nr_requests"
+                            echo '44' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '20' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '488' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '81360' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt67[67]* )
-                            echo '42' >"/sys/block/$i/queue/iosched/fifo_batch"
-                            echo '16' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '484' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '79785' >"/sys/block/$i/queue/nr_requests"
+                            echo '44' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '20' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '488' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '81260' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt* | * )
-                            echo '42' >"/sys/block/$i/queue/iosched/fifo_batch"
-                            echo '16' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '484' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '79785' >"/sys/block/$i/queue/nr_requests"
+                            echo '44' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '20' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '488' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '81260' >"/sys/block/$i/queue/nr_requests"
                             ;;
                     esac
                     ;;
