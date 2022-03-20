@@ -28,9 +28,6 @@ function unsetHifiNetwork()
 {
     # Delete wifi optimizations
     settings delete global wifi_suspend_optimizations_enabled
-
-    # Stop higher bitrate (approx. 600kbps) for bluetooth SBC HD codec when conneted to bluetooth EDR 2Mbps devices
-    #resetprop -p --delete persist.bluetooth.sbc_hd_higher_bitrate
 }
 
 function unsetVolumeMediaSteps()
@@ -38,6 +35,7 @@ function unsetVolumeMediaSteps()
     # Delete volume media steps key
     settings delete system volume_steps_music
 }
+
 function stopEnforcing()
 {
     # Change SELinux enforcing mode to permissive mode
@@ -98,20 +96,30 @@ function setVolumeMediaSteps()
     settings put system volume_steps_music 100
 }
 
+function which_resetprop_command()
+{
+    type resetprop 1>"/dev/null" 2>&1
+    if [ $? -eq 0 ]; then
+        echo "resetprop"
+    else
+        type resetprop_phh 1>"/dev/null" 2>&1
+        if [ $? -eq 0 ]; then
+            echo "resetprop_phh"
+        else
+            return 1
+        fi
+    fi
+    return 0
+}
+
 function forceIgnoreAudioEffects()
 {
     if [ "`getprop persist.sys.phh.disable_audio_effects`" = "0" ]; then
-        
-        type resetprop 1>/dev/null 2>&1
-        if [ $? -eq 0 ]; then
-            resetprop ro.audio.ignore_effects true
+        local resetprop_command="`which_resetprop_command`"
+        if [ -n "$resetprop_command" ]; then
+            "$resetprop_command" ro.audio.ignore_effects true
         else
-            type resetprop_phh 1>/dev/null 2>&1
-            if [ $? -eq 0 ]; then
-                resetprop_phh ro.audio.ignore_effects true
-            else
-                return 1
-            fi
+            return 1
         fi
         
         if [ "`getprop init.svc.audioserver`" = "running" ]; then
@@ -120,12 +128,9 @@ function forceIgnoreAudioEffects()
         
     elif [ "`getprop ro.system.build.version.release`" -ge "12" ]; then
         
-        local audioHal
-        setprop ctl.restart audioserver
-        audioHal="$(getprop |sed -nE 's/.*init\.svc\.(.*audio-hal[^]]*).*/\1/p')"
-        setprop ctl.restart "$audioHal" 1>"/dev/null" 2>&1
-        setprop ctl.restart vendor.audio-hal-2-0 1>"/dev/null" 2>&1
-        setprop ctl.restart audio-hal-2-0 1>"/dev/null" 2>&1
+        if [ "`getprop init.svc.audioserver`" = "running" ]; then
+            setprop ctl.restart audioserver
+        fi
         
     fi
 }
@@ -217,31 +222,31 @@ function setKernelTunables()
                             echo '43' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '20' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '496' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '81000' >"/sys/block/$i/queue/nr_requests"
+                            echo '81004' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         sdm* | msm* | sd* | exynos* )
                             echo '43' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '20' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '496' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '80900' >"/sys/block/$i/queue/nr_requests"
+                            echo '80904' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt68* )
                             echo '44' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '20' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '488' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '81360' >"/sys/block/$i/queue/nr_requests"
+                            echo '81375' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt67[67]* )
                             echo '44' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '20' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '488' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '81260' >"/sys/block/$i/queue/nr_requests"
+                            echo '81394' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt* | * )
                             echo '44' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '20' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '488' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '81260' >"/sys/block/$i/queue/nr_requests"
+                            echo '81394' >"/sys/block/$i/queue/nr_requests"
                             ;;
                     esac
                     ;;
@@ -254,15 +259,29 @@ function setKernelTunables()
                     echo '1' >"/sys/block/$i/queue/iosched/low_latency"
                     echo '1' >"/sys/block/$i/queue/iosched/quantum"
                     echo '3' >"/sys/block/$i/queue/iosched/slice_async"
-                    echo '26' >"/sys/block/$i/queue/iosched/slice_async_rq"
+                    echo '28' >"/sys/block/$i/queue/iosched/slice_async_rq"
                     echo '0' >"/sys/block/$i/queue/iosched/slice_idle"
                     echo '3' >"/sys/block/$i/queue/iosched/slice_sync"
                     echo '3' >"/sys/block/$i/queue/iosched/target_latency"
-                    echo '76000' >"/sys/block/$i/queue/nr_requests"
+                    case "`getprop ro.board.platform`" in
+                        sdm* | msm* | sd* | exynos* )
+                            echo '81600' >"/sys/block/$i/queue/nr_requests"
+                            ;;
+                        * )
+                            echo '82200' >"/sys/block/$i/queue/nr_requests"
+                            ;;
+                    esac
                     ;;
                 "noop" )
                     echo 'noop' >"/sys/block/$i/queue/scheduler"
-                    echo '61675' >"/sys/block/$i/queue/nr_requests"
+                    case "`getprop ro.board.platform`" in
+                        sdm* | msm* | sd* | exynos* )
+                            echo '61675' >"/sys/block/$i/queue/nr_requests"
+                            ;;
+                        * )
+                            echo '60915' >"/sys/block/$i/queue/nr_requests"
+                            ;;
+                    esac
                     ;;
                 * )
                     #  an empty string or unknown I/O schedulers

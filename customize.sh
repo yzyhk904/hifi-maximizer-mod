@@ -6,7 +6,7 @@ REPLACE="
 "
 . "$MODPATH/functions.sh"
 
-# Set the active configuration file name
+# Set the active configuration file name retrieved from the audio policy server
 configXML="`getActivePolicyFile`"
 
 case "$configXML" in
@@ -14,7 +14,6 @@ case "$configXML" in
         # If DRC enabled, modify audio policy configuration to stopt DRC
         MAGISKPATH="$(magisk --path)"
         if [ -n "$MAGISKPATH"  -a  -r "$MAGISKPATH/.magisk/mirror${configXML}" ]; then
-            
             # Don't use "$MAGISKPATH/.magisk/mirror/system${configXML}" instead of "$MAGISKPATH/.magisk/mirror${configXML}".
             # In some cases, the former may link to overlaied "${configXML}" by Magisk itself (not original mirrored "${configXML}".
             mirrorConfigXML="$MAGISKPATH/.magisk/mirror${configXML}"
@@ -36,14 +35,17 @@ case "$configXML" in
         ;;
 esac
 
-# Replace system property values for some low performance SoC's
+# Replace system property values for old Androids and some low performance SoC's
 
 function replaceSystemProps()
 {
     sed -i \
         -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=5600/' \
-        -e 's/ro\.audio\.resampler\.psd\.halflength=.*$/ro\.audio\.resampler\.psd\.halflength=320/' \
             "$MODPATH/system.prop"
+    sed -i \
+        -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=5600/' \
+        -e 's/ro\.audio\.resampler\.psd\.halflength=.*$/ro\.audio\.resampler\.psd\.halflength=320/' \
+            "$MODPATH/system.prop-workaround"
 }
 
 if "$IS64BIT"; then
@@ -54,4 +56,14 @@ if "$IS64BIT"; then
     esac
 else
     replaceSystemProps
+fi
+
+# AudioFlinger's resampler has a bug on an Android OS of which version is less than 12.
+# This bug makes the resampler to distort audible audio output by wrong aliasing processing
+#   when specifying a transition band around or higher than the Nyquist frequency
+
+if [ "`getprop ro.system.build.version.release`" -lt "12" ]; then
+    mv -f "$MODPATH/system.prop-workaround" "$MODPATH/system.prop"
+else
+    rm -f "$MODPATH/system.prop-workaround"
 fi
