@@ -4,46 +4,51 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
 
 * For Reducing Jitters
   1. CPU & GPU governor<br>
-  	change their governors to "performance" (additionally fixed at the max frequency).
+        change their governors to "performance" (additionally fixed at the max frequency).
   2. I/O scheduler<br>
-  	scheduler preference: "deadline" ("cfq" if "deadline" doesn't exist); optimize its tunables.
+        scheduler preference: "deadline" ("cfq" if "deadline" doesn't exist); optimize its tunables.
   3. Virtual memory<br>
-  	change "swappiness" to 0%, "laptop mode" to 1, etc.
+        change "swappiness" to 0%, "laptop mode" to 1, etc.
   4. Thermal Control (if it exists)<br>
-  	disable "core control".
+        disable "core control".
   5. CPU hotplug<br>
-  	disable "MPDecision".
+        disable "MPDecision".
   6. Selinux mode<br>
-  	change the mode to "permissive".
+        change the mode to "permissive".
   7. WIFI suspension<br>
-  	disable wifi suspend optimizations.
+        disable wifi suspend optimizations.
   8. Kill effect chains<br>
-  	force ignoring `/vendor/etc/audio_effects.xml` to disable equalizers, virtualizers, reverb's, visualizer, echo cancelers, automatic gain controls, etc.
+        force ignoring `/vendor/etc/audio_effects.xml` to disable equalizers, virtualizers, reverb's, visualizer, echo cancelers, automatic gain controls, etc.
   9. Disable camera service<br>
-  	disable "camera server" interfering jitter on audio outputs.
+        disable "camera server" interfering jitter on audio outputs.
   10. Disable MediaTek EAS+ scheduler<br>
-  	`echo '1' > "/proc/cpufreq/cpufreq_sched_disable"`
+        `echo '1' > "/proc/cpufreq/cpufreq_sched_disable"`
 
 * For Convenience and Audio Quality
   1. Disable DRC (Dynamic Range Control, i.e., a kind of compression)<br>
-  	modify `/vendor/etc/*/audio_policy_configuration*.xml` to disable DRC if DRC has been enabled on a stock firmware.
+        modify `/vendor/etc/*/audio_policy_configuration*.xml` to disable DRC if DRC has been enabled on a stock firmware.
   2. Volume steps<br>
-  	change the number of steps in media volume to 100 steps (0.4~0.7dB per step).
+        change the number of steps in media volume to 100 steps (0.4~0.7dB per step).
   3. Resampling quality<br>
-  	change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% of the Nyquist frequency & half filter length 32) to a mastering quality (167dB & 106% & 368 or 160db & 91% & 480 (or 320 for low performance devices), i.e., no resampling distortion in a real sense even though the 160dB targeted attenuation is not accomplished in the AOSP implementation).
+        change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% of the Nyquist frequency & half filter length 32) to a very mastering quality (179dB & 99% & 408, 167dB & 106% & 368 or 160db & 91% & 480 (or 320 for low performance devices), i.e., no resampling distortion in a real sense even though the 160dB targeted attenuation is not accomplished in the AOSP implementation).
+   4. Adjust a USB transfer period<br>
+        directly reduce the jitter of PLL in a DAC (even in an asynchronous mode).
+
 
 <br/><br/>
 
 * This module has been tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11 & 12, Qualcomm & MediaTek SoC, and Arm32 & Arm64 combinations). 
-  
-* Please disable "Manage apps automatically" in "Battery manager" (or "Adaptive battery" of "Adaptive preferences") in the battery section (needless to say, don't enable battery savers and the like), and change "Battery optimization" from "Optimize" to "Don't optimize" (or change "Battery usage" from "Optimized" to "Unrestricted") for following app's manually through the settings UI of Android OS (to lower less than 10Hz jitter making extremely short reverb or foggy sound like distortion). music (streaming) player apps, their licensing apps (if exist), "AirMusic" (if exists), "AirMusic  Recording Service" (system app; if exists), equalizer apps (if exist), "Bluetooth" (system app), "Bluetooth MIDI Service" (system app), "MTP Host" (system app), "NFC Service" (system app; if exists), "Magisk" (if exists), System WebView apps (system app), Browser apps, "PhhTrebleApp" (system app; if exists), "Android Services Library" (system app), "Android Shared Library" (system app), "Android System" (system app), "System UI" (system app), "Input Devices" (system app), Navigation Bar app (system app; if exists), "crDroid System" (system app; if exists), "LineageOS System" (system app; if exists), launcher app, "Google Play Store" (system app), "Google Play services" (system app), "Styles & wallpaper" or the like (system app), {Lineage, crDroid, Arrow, etc.} themes app (system app; if exists),  "AOSP panel" (system app; if exists), "OmniJaws" (system app; if exists), "OmniStyle" (system app; if exists), "Active Edge Service" (system app; if exists), "Android Device Security Module" (system app; if exists), "Call Management" (system app; if exists), "Phone" (system app; if exists), "Phone Calls" (system app; if exists), "Phone Services" (system app; if exists), "Phone and Messaging Storage" (system app; if exists), "Storage Manager" (system app), "Default" (system app; if exists), "Default StatusBar" (system app; if exists), keyboard app, kernel adiutors (if exist), etc. And also Disable "Digital Wellbeing" (system app; if it exists) itself or change "Battery usage" from "Optimized" to "Unrestricted" (this is very harmful for audio like camera servers).
 
+* Note: Entry class USB DAC's usually adopt an interface chip communicating with the adaptive mode or the synchronous one defined in the USB audio standard. As in these modes an Android host controller sends audio sampling rate clock signals to the DAC, jitter generated at the host side affects the audio quality of the DAC tremendously. Higher class DAC's communicate with the asynchronous mode (also defined in the standard) to a host controller, but they actually use PLL to reduce jitter from the host not to stutter even in heavy jitter situations. As this result, they behave as the adaptive mode with a feedback loop to dynamically adjust the host side sampling clock signals while referring a DAC side clock in a real sense, so even with asynchronous mode they are more or less affected by host side jitter. You can see the mode of your USB DAC by opening "/proc/asound/card1/stream0" on your phone while playing music. Please see a word in parentheses at "Endpoint:" lines; "SYNC", "ADAPTIVE" or "ASYNC" means that your DAC uses "synchronous", "adaptive" or "asynchronous" mode to communicate to your phone, respectively.
+  
+* Please disable "Manage apps automatically" in "Battery manager" (or "Adaptive battery" of "Adaptive preferences") in the battery section (needless to say, don't enable battery savers, performance limiters and the like), and change "Battery optimization" from "Optimize" to "Don't optimize" (or change "Battery usage" from "Optimized" to "Unrestricted") for following app's manually through the settings UI of Android OS (to lower less than 10Hz jitter making extremely short reverb or foggy sound like distortion) even though disabling the Android doze itself. music (streaming) player apps, their licensing apps (if exist), "AirMusic" (if exists), "AirMusic  Recording Service" (system app; if exists), equalizer apps (if exist), "Bluetooth" (system app), "Bluetooth MIDI Service" (system app), "MTP Host" (system app), "NFC Service" (system app; if exists), "sManager" or the like (if exists), "Magisk" (if exists), System WebView apps (system app), Browser apps, "PhhTrebleApp" (system app; if exists), "Android Services Library" (system app), "Android Shared Library" (system app), "Android System" (system app), "System UI" (system app), "Input Devices" (system app), {Gesture, 3 Button, 2  Button} Navigation Bar apps (which you are using only; system app), "crDroid System" (system app; if exists), "LineageOS System" (system app; if exists), launcher app, "Google Play Store" (system app), "Google Play services" (system app), "Styles & wallpaper" or the like (system app), {Lineage, crDroid, Arrow, etc.} themes app (system app; if exists),  "AOSP panel" (system app; if exists), "OmniJaws" (system app; if exists), "OmniStyle" (system app; if exists), "Active Edge Service" (system app; if exists), "Android Device Security Module" (system app; if exists), "Call Management" (system app; if exists), "Phone" (system app; if exists), "Phone Calls" (system app; if exists), "Phone Services" (system app; if exists), "Phone and Messaging Storage" (system app; if exists), "Storage Manager" (system app), "Default" (system app; if exists), "Default StatusBar" (system app; if exists), "Wfd Service" (system app; if exists), "Wallpaper" or the like (system app), "Adreno Graphics Drivers" (system app; if exists), "com.android.providers.media" (system app), "Files by Google" (system app; if exists), "Google Play Services for AR" (system app; if exists), "Google Services Framework" (system app), "Waterfall cutout" (system app), "Network Manager" (system app), "Companion Device Manager" (system app), "Intent Filter Verification Service" (system app), "Calendar", camera apps, keyboard app, kernel adiutors (if exist), etc. And Disable "Digital Wellbeing" (system app; if it exists) itself or change "Battery usage" from "Optimized" to "Unrestricted" (this is very harmful for audio like camera servers).
 
 * See also my companion script ["USB_SampleRate_Changer"](https://github.com/yzyhk904/USB_SampleRate_Changer) to change the sample rate of the USB (HAL) audio class driver and a 3.5mm jack on the fly like Bluetooth LDAC or Windows mixer to enjoy high resolution sound or to reduce resampling distortion (actually pre-echo, ringing and intermodulation) ultimately.
 
-* Tips: If you use "AirMusic" to transmit audio data, I recommend to set around 4523 msec additional delay to reduce jitter distortion on the AirMusic panel to display target device(s).
+* Tips: If you use "AirMusic" to transmit audio data, I recommend to set around 4569 msec additional delay to reduce jitter distortion on the AirMusic panel to display target device(s).
 
-* Note: Please remember that this module will stop the thermal "core control" and the "camera server" (interfering jitter on audio outputs), and disable SELinux enforcing mode on your device. If you like to disable these features, modify variables in "service.sh", respectively.
+* Note: Please remember that this module will stop the thermal control (including CPU core controls, CPU hotplugs and thermal services) and the "camera server" (interfering jitter on audio outputs), disable SELinux enforcing mode and doze (battery saver while idling) on your device. If you like to disable these features, modify variables in "service.sh", respectively.
+<br/>
 
 ## DISCLAIMER
 

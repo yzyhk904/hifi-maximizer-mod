@@ -14,11 +14,12 @@ MODDIR=${0%/*}
 
 #
 
-# Disable thermal core control, Camera service (interfering in jitters on audio outputs) and Selinux enforcing or not, respectively ("yes" or "no")
-DisableThermalCoreControl="yes"
+# Disable thermal control, Camera service (interfering in jitters on audio outputs), Selinux enforcing and Doze (battery optimizations) or not, respectively ("yes" or "no")
+DisableThermalControl="yes"
 DisableCameraService="yes"
 DisableSelinuxEnforcing="yes"
+DisableDoze="yes"
 
 # sleep 30 secs needed for "settings" commans to become effective and another kernel tunables setting process completion in an orphan process
 
-(((sleep 30; optimizeOS $DisableThermalCoreControl $DisableCameraService $DisableSelinuxEnforcing)  0<&- &>"/dev/null" &) &)
+(((sleep 30; optimizeOS $DisableThermalControl $DisableCameraService $DisableSelinuxEnforcing $DisableDoze)  0<&- &>"/dev/null" &) &)
