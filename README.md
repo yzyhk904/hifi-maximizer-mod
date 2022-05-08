@@ -23,6 +23,8 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
         disable "camera server" interfering jitter on audio outputs.
   10. Disable MediaTek EAS+ scheduler<br>
         `echo '1' > "/proc/cpufreq/cpufreq_sched_disable"`
+  11. Dose<br>
+        disable the Android doze itself
 
 * For Convenience and Audio Quality
   1. Disable DRC (Dynamic Range Control, i.e., a kind of compression)<br>
