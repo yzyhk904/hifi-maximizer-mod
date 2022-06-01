@@ -182,15 +182,30 @@ function forceIgnoreAudioEffects()
             return 1
         fi
         
-        if [ "`getprop init.svc.audioserver`" = "running" ]; then
+        if [ -n "`getprop init.svc.audioserver`" ]; then
             setprop ctl.restart audioserver
+            sleep 1.2
+            if [ "`getprop init.svc.audioserver`" != "running" ]; then
+                # workaround for Android 12 old devices hanging up the audioserver after "setprop ctl.restart audioserver" is executed
+                local pid="`getprop init.svc_debug_pid.audioserver`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>&2
+                fi
+            fi
         fi
         
     elif [ "`getprop ro.system.build.version.release`" -ge "12" ]; then
         
-        if [ "`getprop init.svc.audioserver`" = "running" ]; then
+        if [ -n "`getprop init.svc.audioserver`" ]; then
             setprop ctl.restart audioserver
-        fi
+            sleep 1.2
+            if [ "`getprop init.svc.audioserver`" != "running" ]; then
+                # workaround for Android 12 old devices hanging up the audioserver after "setprop ctl.restart audioserver" is executed
+                local pid="`getprop init.svc_debug_pid.audioserver`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            fi
         
     fi
 }
@@ -347,40 +362,40 @@ function setKernelTunables()
                     echo '0' >"/sys/block/$i/queue/iosched/writes_starved"
                     case "`getSocModelName`" in
                         sdm8[5-9]* | sdm9* )
-                            echo '49' >"/sys/block/$i/queue/iosched/fifo_batch"
-                            echo '24' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '500' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '83853' >"/sys/block/$i/queue/nr_requests"
+                            echo '59' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '28' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '512' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '84559' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         sdm8* )
-                            echo '49' >"/sys/block/$i/queue/iosched/fifo_batch"
-                            echo '24' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '500' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '83965' >"/sys/block/$i/queue/nr_requests"
+                            echo '58' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '26' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '510' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '84868' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         sdm* | msm* | sd* | exynos* )
-                            echo '49' >"/sys/block/$i/queue/iosched/fifo_batch"
-                            echo '24' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '500' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '82861' >"/sys/block/$i/queue/nr_requests"
+                            echo '58' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '26' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '513' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '84875' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt68* )
-                            echo '52' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '55' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '28' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '500' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '84500' >"/sys/block/$i/queue/nr_requests"
+                            echo '504' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '84436' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt67[6-9]? )
-                            echo '48' >"/sys/block/$i/queue/iosched/fifo_batch"
-                            echo '24' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '496' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '83300' >"/sys/block/$i/queue/nr_requests"
+                            echo '57' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '28' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '508' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '84456' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt* | * )
-                            echo '48' >"/sys/block/$i/queue/iosched/fifo_batch"
-                            echo '24' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '496' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '83373' >"/sys/block/$i/queue/nr_requests"
+                            echo '57' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '28' >"/sys/block/$i/queue/iosched/read_expire"
+                            echo '508' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '84456' >"/sys/block/$i/queue/nr_requests"
                             ;;
                     esac
                     ;;
@@ -393,16 +408,16 @@ function setKernelTunables()
                     echo '1' >"/sys/block/$i/queue/iosched/low_latency"
                     echo '1' >"/sys/block/$i/queue/iosched/quantum"
                     echo '3' >"/sys/block/$i/queue/iosched/slice_async"
-                    echo '29' >"/sys/block/$i/queue/iosched/slice_async_rq"
+                    echo '35' >"/sys/block/$i/queue/iosched/slice_async_rq"
                     echo '0' >"/sys/block/$i/queue/iosched/slice_idle"
                     echo '3' >"/sys/block/$i/queue/iosched/slice_sync"
                     echo '3' >"/sys/block/$i/queue/iosched/target_latency"
                     case "`getSocModelName`" in
                         sdm* | msm* | sd* | exynos* )
-                            echo '81940' >"/sys/block/$i/queue/nr_requests"
+                            echo '83587' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         * )
-                            echo '82200' >"/sys/block/$i/queue/nr_requests"
+                            echo '83587' >"/sys/block/$i/queue/nr_requests"
                             ;;
                     esac
                     ;;

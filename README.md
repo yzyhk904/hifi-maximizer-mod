@@ -2,41 +2,48 @@
 
 This module reduces jitters on audio outputs by optimizing kenel tunables (CPU & GPU  governors, thermal control, CPU hotplug, I/O scheduler, Virtual memory), Selinux mode, WIFI parameters, etc. as follows,
 
-* For Reducing Jitters
-  1. CPU & GPU governor<br>
-        change their governors to "performance" (additionally fixed at the max frequency).
-  2. I/O scheduler<br>
-        scheduler preference: "deadline" ("cfq" if "deadline" doesn't exist); optimize its tunables.
-  3. Virtual memory<br>
-        change "swappiness" to 0%, "laptop mode" to 1, etc.
-  4. Thermal Control (if it exists)<br>
-        disable "core control".
-  5. CPU hotplug<br>
-        disable "MPDecision".
-  6. Selinux mode<br>
-        change the mode to "permissive".
-  7. WIFI suspension<br>
-        disable wifi suspend optimizations.
-  8. Kill effect chains<br>
-        force ignoring `/vendor/etc/audio_effects.xml` to disable equalizers, virtualizers, reverb's, visualizer, echo cancelers, automatic gain controls, etc.
-  9. Disable camera service<br>
-        disable "camera server" interfering jitter on audio outputs.
-  10. Disable MediaTek EAS+ scheduler<br>
-        `echo '1' > "/proc/cpufreq/cpufreq_sched_disable"`
-  11. Dose<br>
-        disable the Android doze itself
+* For Reducing Jitters:
+<ol>
+    <li>CPU & GPU governor<br>
+        change their governors to "performance" (additionally fixed at the max frequency).</li>
+    <li>I/O scheduler<br>
+        scheduler preference: "deadline" ("cfq" if "deadline" doesn't exist); optimize its tunables.</li>
+    <li>Virtual memory<br>
+        change "swappiness" to 0%, "laptop mode" to 1, etc.</li>
+    <li>Thermal Control (if it exists)<br>
+        disable "core control".</li>
+    <li>CPU hotplug<br>
+        disable "MPDecision".</li>
+    <li>Selinux mode<br>
+        change the mode to "permissive".</li>
+    <li>WIFI suspension<br>
+        disable wifi suspend optimizations.</li>
+    <li>Kill effect chains<br>
+        force ignoring `/vendor/etc/audio_effects.xml` to disable equalizers, virtualizers, reverb's, visualizer, echo cancelers, automatic gain controls, etc.</li>
+    <li>Disable camera service<br>
+        disable "camera server" interfering jitter on audio outputs.</li>
+    <li>Disable MediaTek EAS+ scheduler<br>
+        `echo '1' > "/proc/cpufreq/cpufreq_sched_disable"`</li>
+    <li>Dose<br>
+        disable the Android doze itself.</li>
+</ol>
+<br/>
 
-* For Convenience and Audio Quality
-  1. Disable DRC (Dynamic Range Control, i.e., a kind of compression)<br>
-        modify `/vendor/etc/*/audio_policy_configuration*.xml` to disable DRC if DRC has been enabled on a stock firmware.
-  2. Volume steps<br>
-        change the number of steps in media volume to 100 steps (0.4~0.7dB per step).
-  3. Resampling quality<br>
-        change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% of the Nyquist frequency & half filter length 32) to a very mastering quality (179dB & 99% & 408, 167dB & 106% & 368 or 160db & 91% & 480 (or 320 for low performance devices), i.e., no resampling distortion in a real sense even though the 160dB targeted attenuation is not accomplished in the AOSP implementation).
-   4. Adjust a USB transfer period<br>
-        directly reduce the jitter of PLL in a DAC (even in an asynchronous mode).
-
-
+* For Convenience and Audio Quality:
+<ol>
+    <li> Disable DRC (Dynamic Range Control, i.e., a kind of compression)<br/>
+        modify `/vendor/etc/*/audio_policy_configuration*.xml` to disable DRC if DRC has been enabled on a stock firmware.</li>
+    <li>Volume steps<br/>
+        change the number of steps in media volume to 100 steps (0.4~0.7dB per step).</li>
+    <li>Resampling quality<br/>
+        change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% of the Nyquist frequency & half filter length 32) to a very mastering quality (179dB & 99% & 408, 167dB & 106% & 368 or 160db & 91% & 480 (or 320 for low performance devices), i.e., no resampling distortion in a real sense even though the 160dB targeted attenuation is not accomplished in the AOSP implementation).</li>
+    <li>Adjust a USB transfer period<br/>
+        directly reduce the jitter of a PLL in a DAC (even in an asynchronous mode).</li>
+    <li>Sets a higher bitrate limit of bluetooth codec SBC (dual channel mode)<br/>
+        for EDR 2Mbps entry class earphones (not for EDR 3Mbps performance ones, but including AV amplifiers and BT speakers).</li>
+    <li>Sets an audio scheduling tunable "vendor.audio.adm.buffering.ms" "2"<br/>
+         to reduce jitter on all audio outputs.</li>
+</ol>
 <br/><br/>
 
 * This module has been tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11 & 12, Qualcomm & MediaTek SoC, and Arm32 & Arm64 combinations). 
@@ -61,16 +68,25 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
 
 # v1.0
 * Initial Release
+
 # v1.1
 * Stopped the EAS+ scheduling feature for MediaTek CPUs
+
 # v1.2
 * Stopped camera servers interfering in jitters on audio outputs, and reformatted source codes
+
 # v1.3
 * Realme support (/proc/sys/vm/direct_swappiness)
+
 # v1.4
 * Moved scattered functions into "functions.sh" together, and treated IO Schedulers more rigorously
+
 # v2.0
 * Supported audio policy configuration XML files for "disable a2dp offload", "force-disable a2dp offload", and so on
 # v2.1
 * The GPU frequency became to be fixed really at the max frequency for Qualcomm Soc and MediaTek SoC
+
+# v2.2
+* Set new properties related to an audio scheduling
+
 ##
