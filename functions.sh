@@ -206,7 +206,7 @@ function forceIgnoreAudioEffects()
                     kill -HUP $pid 1>"/dev/null" 2>&1
                 fi
             fi
-        
+        fi
     fi
 }
 
@@ -362,16 +362,16 @@ function setKernelTunables()
                     echo '0' >"/sys/block/$i/queue/iosched/writes_starved"
                     case "`getSocModelName`" in
                         sdm8[5-9]* | sdm9* )
-                            echo '59' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '58' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '28' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '512' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '84559' >"/sys/block/$i/queue/nr_requests"
+                            echo '84578' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         sdm8* )
-                            echo '58' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '59' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '26' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '510' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '84868' >"/sys/block/$i/queue/nr_requests"
+                            echo '84876' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         sdm* | msm* | sd* | exynos* )
                             echo '58' >"/sys/block/$i/queue/iosched/fifo_batch"
@@ -380,10 +380,10 @@ function setKernelTunables()
                             echo '84875' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt68* )
-                            echo '55' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '57' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '28' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '504' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '84436' >"/sys/block/$i/queue/nr_requests"
+                            echo '508' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '85838' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         mt67[6-9]? )
                             echo '57' >"/sys/block/$i/queue/iosched/fifo_batch"
@@ -408,7 +408,7 @@ function setKernelTunables()
                     echo '1' >"/sys/block/$i/queue/iosched/low_latency"
                     echo '1' >"/sys/block/$i/queue/iosched/quantum"
                     echo '3' >"/sys/block/$i/queue/iosched/slice_async"
-                    echo '35' >"/sys/block/$i/queue/iosched/slice_async_rq"
+                    echo '34' >"/sys/block/$i/queue/iosched/slice_async_rq"
                     echo '0' >"/sys/block/$i/queue/iosched/slice_idle"
                     echo '3' >"/sys/block/$i/queue/iosched/slice_sync"
                     echo '3' >"/sys/block/$i/queue/iosched/target_latency"
