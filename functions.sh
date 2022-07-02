@@ -131,6 +131,7 @@ function stopCameraService()
         setprop ctl.stop qcamerasvr
     fi
     if [ "`getprop init.svc.vendor.qcamerasvr`" = "running" ]; then
+        # There is a bug that qcameraserver cannot stop completely, but I leave this for audio quality
         setprop ctl.stop vendor.qcamerasvr
     fi
     if [ "`getprop init.svc.cameraserver`" = "running" ]; then
@@ -500,6 +501,15 @@ function optimizeOS()
             exit 1
             ;;
     esac
+
+    # wait for system boot completion and audiosever boot up
+    local i
+    for i in `seq 1 30` ; do
+        if [ "`getprop sys.boot_completed`" = "1"  -a  -n "`getprop init.svc.audioserver`" ]; then
+            break
+        fi
+        sleep 0.9
+    done
 
     if [ "$a1" = "yes" ]; then
         stopThermalControl

@@ -52,6 +52,20 @@ function replaceSystemProps_Old()
             "$MODPATH/system.prop-workaround"
 }
 
+function replaceSystemProps_S4()
+{
+    sed -i \
+        -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3875/' \
+        -e 's/ro\.audio\.resampler\.psd\.stopband=.*$/ro\.audio\.resampler\.psd\.stopband=194/' \
+        -e 's/ro\.audio\.resampler\.psd\.halflength=.*$/ro\.audio\.resampler\.psd\.halflength=520/' \
+        -e 's/ro\.audio\.resampler\.psd\.tbwcheat=.*$/ro\.audio\.resampler\.psd\.cutoff_percent=100/' \
+            "$MODPATH/system.prop"
+    sed -i \
+        -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3875/' \
+        -e 's/ro\.audio\.resampler\.psd\.halflength=.*$/ro\.audio\.resampler\.psd\.halflength=320/' \
+            "$MODPATH/system.prop-workaround"
+}
+
 function replaceSystemProps_Kona()
 {
     sed -i \
@@ -73,6 +87,7 @@ function replaceSystemProps_MTK_some()
 }
 
 if "$IS64BIT"; then
+
     case "`getprop ro.board.platform`" in
         "kona" )
             replaceSystemProps_Kona
@@ -84,8 +99,15 @@ if "$IS64BIT"; then
             replaceSystemProps_Old
             ;;
     esac
+
 else
-    replaceSystemProps_Old
+
+    if [ "`getprop ro.build.product`" = "jfltexx" ]; then
+        replaceSystemProps_S4
+    else
+        replaceSystemProps_Old
+    fi
+
 fi
 
 # AudioFlinger's resampler has a bug on an Android OS of which version is less than 12.
