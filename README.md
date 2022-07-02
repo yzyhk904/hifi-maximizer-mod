@@ -3,7 +3,7 @@
 This module reduces jitters on audio outputs by optimizing kenel tunables (CPU & GPU  governors, thermal control, CPU hotplug, I/O scheduler, Virtual memory), Selinux mode, WIFI parameters, etc. as follows,
 
 * For Reducing Jitters:
-    <ol>
+    <ol type="1">
     <li>CPU & GPU governor<br>
         change their governors to "performance" (additionally fixed at the max frequency).</li>
     <li>I/O scheduler<br>
@@ -30,7 +30,7 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
 <br/>
 
 * For Convenience and Audio Quality:
-    <ol>
+    <ol type="1">
     <li> Disable DRC (Dynamic Range Control, i.e., a kind of compression)<br/>
         modify `/vendor/etc/*/audio_policy_configuration*.xml` to disable DRC if DRC has been enabled on a stock firmware.</li>
     <li>Volume steps<br/>
