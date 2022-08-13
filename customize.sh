@@ -37,71 +37,147 @@ esac
 
 # Replace system property values for old Androids and some low performance SoC's
 
+function loosenedMessage()
+{
+    local freq="96kHz"
+    if [ $# -gt 0 ]; then
+        freq="$1"
+    fi
+    
+    ui_print ""
+    ui_print "****************************************************************"
+    ui_print " Loosened the USB jitter level for more than $freq USB outputs! "
+    ui_print "   (\"USB Samplerate Unlocker\" was detected) "
+    ui_print "****************************************************************"
+    ui_print ""
+}
+
 function replaceSystemProps_Old()
 {
+    if [ -e "${MODPATH%/*/*}/modules/usb-samplerate-unlocker"  -o  -e "${MODPATH%/*/*}/modules_update/usb-samplerate-unlocker" ]; then
+        sed -i \
+            -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3875/' \
+                "$MODPATH/system.prop"
+        sed -i \
+            -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3875/' \
+                "$MODPATH/system.prop-workaround"
+        
+        loosenedMessage
+        
+    fi
+    
     sed -i \
-        -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3875/' \
         -e 's/ro\.audio\.resampler\.psd\.enable_at_samplerate=.*$/ro\.audio\.resampler\.psd\.enable_at_samplerate=48000/' \
         -e 's/ro\.audio\.resampler\.psd\.stopband=.*$/ro\.audio\.resampler\.psd\.stopband=167/' \
         -e 's/ro\.audio\.resampler\.psd\.halflength=.*$/ro\.audio\.resampler\.psd\.halflength=368/' \
         -e 's/ro\.audio\.resampler\.psd\.tbwcheat=.*$/ro\.audio\.resampler\.psd\.tbwcheat=106/' \
             "$MODPATH/system.prop"
     sed -i \
-        -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3875/' \
         -e 's/ro\.audio\.resampler\.psd\.halflength=.*$/ro\.audio\.resampler\.psd\.halflength=320/' \
             "$MODPATH/system.prop-workaround"
+
 }
 
 function replaceSystemProps_S4()
 {
+    if [ -e "${MODPATH%/*/*}/modules/usb-samplerate-unlocker"  -o  -e "${MODPATH%/*/*}/modules_update/usb-samplerate-unlocker" ]; then
+        sed -i \
+            -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3875/' \
+                "$MODPATH/system.prop"
+        sed -i \
+            -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3875/' \
+                "$MODPATH/system.prop-workaround"
+        
+        loosenedMessage
+
+    fi
+    
     sed -i \
-        -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3875/' \
         -e 's/ro\.audio\.resampler\.psd\.stopband=.*$/ro\.audio\.resampler\.psd\.stopband=194/' \
         -e 's/ro\.audio\.resampler\.psd\.halflength=.*$/ro\.audio\.resampler\.psd\.halflength=520/' \
         -e 's/ro\.audio\.resampler\.psd\.tbwcheat=.*$/ro\.audio\.resampler\.psd\.cutoff_percent=100/' \
             "$MODPATH/system.prop"
     sed -i \
-        -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3875/' \
         -e 's/ro\.audio\.resampler\.psd\.halflength=.*$/ro\.audio\.resampler\.psd\.halflength=320/' \
             "$MODPATH/system.prop-workaround"
 }
 
 function replaceSystemProps_Kona()
 {
-    sed -i \
-        -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=20375/' \
-            "$MODPATH/system.prop"
-    sed -i \
-        -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=20375/' \
-            "$MODPATH/system.prop-workaround"
+    if [ -e "${MODPATH%/*/*}/modules/usb-samplerate-unlocker"  -o  -e "${MODPATH%/*/*}/modules_update/usb-samplerate-unlocker" ]; then
+        sed -i \
+            -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=20375/' \
+                "$MODPATH/system.prop"
+        sed -i \
+            -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=20375/' \
+                "$MODPATH/system.prop-workaround"
+        
+        loosenedMessage "192kHz"
+        
+    fi
 }
 
-function replaceSystemProps_MTK_some()
+function replaceSystemProps_MTK_Dimensity()
 {
-    sed -i \
-        -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=875/' \
-            "$MODPATH/system.prop"
-    sed -i \
-        -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=875/' \
-            "$MODPATH/system.prop-workaround"
+    if [ -e "${MODPATH%/*/*}/modules/usb-samplerate-unlocker"  -o  -e "${MODPATH%/*/*}/modules_update/usb-samplerate-unlocker" ]; then
+        sed -i \
+            -e '$avendor.audio.usb.out.period_us=3250\nvendor.audio.usb.out.period_count=2' \
+                "$MODPATH/system.prop"
+        sed -i \
+            -e '$avendor.audio.usb.out.period_us=3250\nvendor.audio.usb.out.period_count=2' \
+                "$MODPATH/system.prop-workaround"
+        
+        loosenedMessage
+        
+    else
+        sed -i \
+            -e '$avendor.audio.usb.out.period_us=2625\nvendor.audio.usb.out.period_count=2' \
+                "$MODPATH/system.prop"
+        sed -i \
+            -e '$avendor.audio.usb.out.period_us=2625\nvendor.audio.usb.out.period_count=2' \
+                "$MODPATH/system.prop-workaround"
+        
+    fi
+}
+
+function replaceSystemProps_Others()
+{
+    if [ -e "${MODPATH%/*/*}/modules/usb-samplerate-unlocker"  -o  -e "${MODPATH%/*/*}/modules_update/usb-samplerate-unlocker" ]; then
+        loosenedMessage
+        
+        sed -i \
+            -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3250/' \
+                "$MODPATH/system.prop"
+        sed -i \
+            -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3250/' \
+                "$MODPATH/system.prop-workaround"
+        
+    fi
+    
 }
 
 if "$IS64BIT"; then
-
-    case "`getprop ro.board.platform`" in
+    local board="`getprop ro.board.platform`"
+    case "$board" in
         "kona" )
             replaceSystemProps_Kona
             ;;
         mt68* )
-            replaceSystemProps_MTK_some
+            if [ -r "/vendor/lib64/hw/audio.usb.${board}.so" ]; then
+                replaceSystemProps_MTK_Dimensity
+            else
+                replaceSystemProps_Others
+            fi
             ;;
         mt67[56]? )
-            replaceSystemProps_Old
+            replaceSystemProps_Others
+            ;;
+        * )
+            replaceSystemProps_Others
             ;;
     esac
 
 else
-
     if [ "`getprop ro.build.product`" = "jfltexx" ]; then
         replaceSystemProps_S4
     else

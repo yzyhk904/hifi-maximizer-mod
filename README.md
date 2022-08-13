@@ -20,10 +20,12 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
         stop the Android doze server.</li>
     <li>Selinux mode<br>
         change the mode to "permissive".</li>
-    <li>WIFI suspension<br>
-        disable wifi suspend optimizations.</li>
+    <li>Adaptive battery saving features<br>
+        disable wifi suspend optimizations, the adaptive battery management and the adaptive connectivity management.</li>
     <li>Kill effect chains<br>
         force ignoring `/vendor/etc/audio_effects.xml` to disable equalizers, virtualizers, reverb's, visualizer, echo cancelers, automatic gain controls, etc.</li>
+    <li>Disable Logd service<br>
+        disable "logd server", "traced server" and "traced_probes server" interfering jitter on audio outputs.</li>
     <li>Disable camera service<br>
         disable "camera server" interfering jitter on audio outputs.</li>
     </ol>
@@ -37,8 +39,8 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
         change the number of steps in media volume to 100 steps (0.4~0.7dB per step).</li>
     <li>Resampling quality<br/>
         change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% of the Nyquist frequency & half filter length 32) to a very mastering quality (179dB & 99% & 408, 167dB & 106% & 368 or 160db & 91% & 480 (or 320 for low performance devices), i.e., no resampling distortion in a real sense even though the 160dB targeted attenuation is not accomplished in the AOSP implementation).</li>
-    <li>Adjust a USB transfer period<br/>
-        directly reduce the jitter of a PLL in a DAC (even in an asynchronous mode).</li>
+    <li>Adjust a USB transfer period of the USB HAL driver (not the recently common hardware offloading USB (tunneling) driver)<br/>
+        for directly reducing the jitter of a PLL in a DAC (even in an asynchronous mode); Use <a href="https://github.com/yzyhk904/USB_SampleRate_Changer">"USB_SampleRate_Changer"</a> to switch from the usual hardware offloading USB (tunneling) driver to the USB HAL one.</li>
     <li>Set a higher bitrate limit of bluetooth codec SBC (dual channel mode)<br/>
         for EDR 2Mbps entry class earphones (not for EDR 3Mbps performance ones, but including AV amplifiers and BT speakers).</li>
     <li>Set an audio scheduling tunable "vendor.audio.adm.buffering.ms" "2"<br/>
@@ -56,9 +58,9 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
 
 * See also my companion script ["USB_SampleRate_Changer"](https://github.com/yzyhk904/USB_SampleRate_Changer) to change the sample rate of the USB (HAL) audio class driver and a 3.5mm jack on the fly like Bluetooth LDAC or Windows mixer to enjoy high resolution sound or to reduce resampling distortion (actually pre-echo, ringing and intermodulation) ultimately.
 
-* Tips: If you use "AirMusic" to transmit audio data, I recommend to set around 4569 msec additional delay to reduce jitter distortion on the AirMusic panel to display target device(s).
+* Tips: If you use "AirMusic" to transmit audio data, I recommend to set around 4573 msec additional delay to reduce jitter distortion on the AirMusic panel to display target device(s).
 
-* Note: Please remember that this module will stop the thermal control (including CPU core controls, CPU hotplugs and thermal services) and the "camera server" (interfering jitter on audio outputs), disable SELinux enforcing mode and doze (battery saver while idling) on your device. If you like to disable these features, modify variables in "service.sh", respectively.
+* Note: Please remember that this module will stop the thermal control (including CPU core controls, CPU hotplugs and thermal services), the "logd server" and the "camera server" (interfering jitter on audio outputs), disable SELinux enforcing mode and doze (battery saver while idling) on your device. If you like to disable these features, modify variables in "service.sh", respectively.
 <br/>
 
 ## DISCLAIMER

@@ -24,9 +24,11 @@ function stopDRC()
     fi
 }
 
-function unsetHifiNetwork()
+function enableAdaptiveFeatures()
 {
-    # Delete wifi optimizations
+    # Enable adaptive fearure for battery savers
+    settings delete global adaptive_battery_management_enabled
+    settings delete secure adaptive_connectivity_enabled
     settings delete global wifi_suspend_optimizations_enabled
 }
 
@@ -124,6 +126,35 @@ function stopThermalControl()
     fi
 }
 
+function stopLogdService()
+{
+    # Stop the Logd servers
+    if [ "`getprop init.svc.logd`" = "running" ]; then
+        setprop ctl.stop logd
+    elif [ "`getprop init.svc.logd`" = "stopping" ]; then
+        local pid="`getprop init.svc_debug_pid.logd`"
+        if [ -n "$pid" ]; then
+            kill -HUP $pid 1>"/dev/null" 2>&1
+        fi
+    fi
+    if [ "`getprop init.svc.traced`" = "running" ]; then
+        setprop ctl.stop traced
+    elif [ "`getprop init.svc.traced`" = "stopping" ]; then
+        local pid="`getprop init.svc_debug_pid.traced`"
+        if [ -n "$pid" ]; then
+            kill -HUP $pid 1>"/dev/null" 2>&1
+        fi
+    fi
+    if [ "`getprop init.svc.traced_probes`" = "running" ]; then
+        setprop ctl.stop traced_probes
+    elif [ "`getprop init.svc.traced_probes`" = "stopping" ]; then
+        local pid="`getprop init.svc_debug_pid.traced_probes`"
+        if [ -n "$pid" ]; then
+            kill -HUP $pid 1>"/dev/null" 2>&1
+        fi
+    fi
+}
+
 function stopCameraService()
 {
     # Stop the camera servers
@@ -145,8 +176,11 @@ function stopCameraService()
     fi
 }
 
-function setHifiNetwork()
+function disableAdaptiveFeatures()
 {
+    # Reducing jitter by battery draining manager and 5G data manager
+    settings put global adaptive_battery_management_enabled 0
+    settings put secure adaptive_connectivity_enabled 0
     # Reducing wifi jitter by suspend wifi optimizations
     settings put global wifi_suspend_optimizations_enabled 0
 }
@@ -363,9 +397,9 @@ function setKernelTunables()
                     echo '0' >"/sys/block/$i/queue/iosched/writes_starved"
                     case "`getSocModelName`" in
                         sdm8[5-9]* | sdm9* )
-                            echo '58' >"/sys/block/$i/queue/iosched/fifo_batch"
+                            echo '59' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '28' >"/sys/block/$i/queue/iosched/read_expire"
-                            echo '512' >"/sys/block/$i/queue/iosched/write_expire"
+                            echo '516' >"/sys/block/$i/queue/iosched/write_expire"
                             echo '84578' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         sdm8* )
@@ -467,6 +501,7 @@ DefaultDisableThermalControl="no"
 DefaultDisableCameraService="no"
 DefaultDisableSelinuxEnforcing="no"
 DefaultDisableDoze="no"
+DefaultDisableLogdService="no"
 
 # This function has usually four arguments
 function optimizeOS()
@@ -475,6 +510,7 @@ function optimizeOS()
     local a2=$DefaultDisableCameraService
     local a3=$DefaultDisableSelinuxEnforcing
     local a4=$DefaultDisableDoze
+    local a5=$DefaultDisableLogdService
   
     case $# in
         0 )
@@ -496,6 +532,13 @@ function optimizeOS()
             a2=$2
             a3=$3
             a4=$4
+            ;;
+        5 )
+            a1=$1
+            a2=$2
+            a3=$3
+            a4=$4
+            a5=$5
             ;;
         * )
             exit 1
@@ -523,8 +566,11 @@ function optimizeOS()
     if [ "$a4" = "yes" ]; then
         stopDoze
     fi
+    if [ "$a5" = "yes" ]; then
+        stopLogdService
+    fi
     setKernelTunables
-    setHifiNetwork
+    disableAdaptiveFeatures
     setVolumeMediaSteps
     forceIgnoreAudioEffects
 }
