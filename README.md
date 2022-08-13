@@ -39,8 +39,8 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
         change the number of steps in media volume to 100 steps (0.4~0.7dB per step).</li>
     <li>Resampling quality<br/>
         change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% of the Nyquist frequency & half filter length 32) to a very mastering quality (179dB & 99% & 408, 167dB & 106% & 368 or 160db & 91% & 480 (or 320 for low performance devices), i.e., no resampling distortion in a real sense even though the 160dB targeted attenuation is not accomplished in the AOSP implementation).</li>
-    <li>Adjust a USB transfer period of the USB HAL driver (not the recently common hardware offloading USB (tunneling) driver)<br/>
-        for directly reducing the jitter of a PLL in a DAC (even in an asynchronous mode); Use <a href="https://github.com/yzyhk904/USB_SampleRate_Changer">"USB_SampleRate_Changer"</a> to switch from the usual hardware offloading USB (tunneling) driver to the USB HAL one.</li>
+    <li>Adjust a USB transfer period of the USB HAL driver (not the hardware offload USB driver)<br/>
+        for directly reducing the jitter of a PLL in a DAC (even in an asynchronous mode); Use <a href="https://github.com/yzyhk904/USB_SampleRate_Changer">"USB_SampleRate_Changer"</a> to switch from the usual hardware offload USB driver to the USB HAL one.</li>
     <li>Set a higher bitrate limit of bluetooth codec SBC (dual channel mode)<br/>
         for EDR 2Mbps entry class earphones (not for EDR 3Mbps performance ones, but including AV amplifiers and BT speakers).</li>
     <li>Set an audio scheduling tunable "vendor.audio.adm.buffering.ms" "2"<br/>
