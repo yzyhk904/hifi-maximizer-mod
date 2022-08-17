@@ -400,7 +400,7 @@ function setKernelTunables()
                             echo '59' >"/sys/block/$i/queue/iosched/fifo_batch"
                             echo '28' >"/sys/block/$i/queue/iosched/read_expire"
                             echo '516' >"/sys/block/$i/queue/iosched/write_expire"
-                            echo '84578' >"/sys/block/$i/queue/nr_requests"
+                            echo '84746' >"/sys/block/$i/queue/nr_requests"
                             ;;
                         sdm8* )
                             echo '59' >"/sys/block/$i/queue/iosched/fifo_batch"

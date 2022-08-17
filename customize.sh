@@ -64,6 +64,14 @@ function replaceSystemProps_Old()
         
         loosenedMessage
         
+    else
+        sed -i \
+            -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3375/' \
+                "$MODPATH/system.prop"
+        sed -i \
+            -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3375/' \
+                "$MODPATH/system.prop-workaround"
+        
     fi
     
     sed -i \
@@ -82,13 +90,21 @@ function replaceSystemProps_S4()
 {
     if [ -e "${MODPATH%/*/*}/modules/usb-samplerate-unlocker"  -o  -e "${MODPATH%/*/*}/modules_update/usb-samplerate-unlocker" ]; then
         sed -i \
+            -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=5000/' \
+                "$MODPATH/system.prop"
+        sed -i \
+            -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=5000/' \
+                "$MODPATH/system.prop-workaround"
+        
+        loosenedMessage
+        
+    else
+        sed -i \
             -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3875/' \
                 "$MODPATH/system.prop"
         sed -i \
             -e 's/ro\.audio\.usb\.period_us=.*$/ro\.audio\.usb\.period_us=3875/' \
                 "$MODPATH/system.prop-workaround"
-        
-        loosenedMessage
 
     fi
     
