@@ -16,7 +16,7 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
         stop "MPDecision" server (if exists).</li>
     <li>Disable MediaTek EAS+ scheduler<br>
         `echo '1' > "/proc/cpufreq/cpufreq_sched_disable"`</li>
-    <li>Dose<br>
+    <li>Doze<br>
         stop the Android doze server.</li>
     <li>Selinux mode<br>
         change the mode to "permissive".</li>
