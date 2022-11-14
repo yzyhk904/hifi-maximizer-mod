@@ -10,7 +10,7 @@ MODDIR=${0%/*}
 # MAGISKPATH=$(magisk --path)
 # MAGISKTMP=$MAGISKPATH/.magisk
 
-. "$MODDIR/functions.sh"
+. "$MODDIR/service-functions.sh"
 
 #
 

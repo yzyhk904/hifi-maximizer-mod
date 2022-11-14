@@ -45,10 +45,11 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
         for EDR 2Mbps entry class earphones (not for EDR 3Mbps performance ones, but including AV amplifiers and BT speakers).</li>
     <li>Set an audio scheduling tunable "vendor.audio.adm.buffering.ms" "2"<br/>
          to reduce jitter on all audio outputs.</li>
+    <li>Nullify volume listener libraries in "soundfx" folders  for disabling slight compression (maybe a peak limiter only on Qcomm devices).</li>
     </ol>
 <br/><br/>
 
-* This module has been tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 & 11 & 12, Qualcomm & MediaTek SoC, and Arm32 & Arm64 combinations). 
+* This module has been tested on LineageOS and ArrowOS ROM's, and phh GSI's (Android 10 ~ 13, Qualcomm & MediaTek SoC, and Arm32 & Arm64 combinations). 
 
 * Note: Entry class USB DAC's usually adopt an interface chip communicating with the adaptive mode or the synchronous one defined in the USB audio standard. As in these modes an Android host controller sends audio sampling rate clock signals to the DAC, jitter generated at the host side affects the audio quality of the DAC tremendously. Higher class DAC's communicate with the asynchronous mode (also defined in the standard) to a host controller, but they actually use a PLL to reduce jitter from the host not to stutter even in heavy jitter situations. As this result, they behave as the adaptive mode with a feedback loop to dynamically adjust the host side sampling clock signals while referring a DAC side clock in a real sense, so even with asynchronous mode they are more or less affected by host side jitter. You can see the mode of your USB DAC by opening "/proc/asound/card1/stream0" on your phone while playing music. Please see a word in parentheses at "Endpoint:" lines; "SYNC", "ADAPTIVE" or "ASYNC" means that your DAC uses "synchronous", "adaptive" or "asynchronous" mode to communicate to your phone, respectively. Moreover, almost all audio peripherals, e.g., bluetooth earphones, internal DAC's, network audio devices have a PLL in themselves and are affected by host side jitter for the same reason.
 
@@ -58,7 +59,7 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
 
 * See also my companion script ["USB_SampleRate_Changer"](https://github.com/yzyhk904/USB_SampleRate_Changer) to change the sample rate of the USB (HAL) audio class driver and a 3.5mm jack on the fly like Bluetooth LDAC or Windows mixer to enjoy high resolution sound or to reduce resampling distortion (actually pre-echo, ringing and intermodulation) ultimately.
 
-* Tips: If you use "AirMusic" to transmit audio data, I recommend to set around 4573 msec additional delay to reduce jitter distortion on the AirMusic panel to display target device(s).
+* Tips: If you use "AirMusic" to transmit audio data, I recommend setting around 4589 msec additional delay to reduce jitter distortion on the AirMusic panel to display target device(s).
 
 * Note: Please remember that this module will stop the thermal control (including CPU core controls, CPU hotplugs and thermal services), the "logd server" and the "camera server" (interfering jitter on audio outputs), disable SELinux enforcing mode and doze (battery saver while idling) on your device. If you like to disable these features, modify variables in "service.sh", respectively.
 <br/>
@@ -91,5 +92,8 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
 
 # v2.2
 * Set new properties related to an audio scheduling
+
+# v2.3
+* Restructured source codes to be sharable with the jitter-reducer.sh in USB_SampleRate_Changer
 
 ##

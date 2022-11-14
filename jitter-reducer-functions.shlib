@@ -1,0 +1,1739 @@
+#!/system/bin/sh
+
+function forceOnlineCPUs()
+{
+    local i st en
+    IFS="-" read st en <"/sys/devices/system/cpu/present"
+    if [ -n "$st"  -a  -n "$en"  -a "$st" -ge 0  -a  "$en" -ge 0 ]; then
+        for i in `seq $st $en`; do
+            if [ -e "/sys/devices/system/cpu/cpu$i/online" ]; then
+                chmod 644 "/sys/devices/system/cpu/cpu$i/online"
+                echo '1' >"/sys/devices/system/cpu/cpu$i/online"
+            fi
+        done
+    fi
+}
+
+function searchDefaultCpuGovernor()
+{
+    # Search default CPU governor
+    local gov=""
+    local i
+    for i in `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors`; do
+        if [ "$i" = "schedutil" ]; then
+            gov="schedutil"
+            break;
+        elif [ ! "$gov" = "schedplus" ]; then
+             if [ "$i" = "schedplus" ]; then
+                gov="$i"
+            elif [ ! "$gov" = "interactive" ]; then
+                gov="$i"
+            fi
+        fi
+    done
+    if [ -z "$gov" ]; then
+        gov="performance"
+    fi
+    echo "$gov"
+}
+
+function reduceSelinuxJitter()
+{
+    if [ $# -eq 2 ]; then
+        local flag="$1"
+        local printStatus="$2"
+        
+        if [ $flag -gt 0 ]; then
+            setenforce 0
+        elif [ $flag -lt 0 ]; then
+            setenforce 1
+        fi
+        
+        if [ $printStatus -gt 0 ]; then
+            echo "  Selinux mode: `getenforce`"
+        fi
+    else
+        return 1
+    fi
+}
+
+function reduceThermalJitter()
+{
+    if [ $# -eq 2 ]; then
+        local flag="$1"
+        local printStatus="$2"
+        
+        if [ $flag -gt 0 ]; then   
+         
+            # Stop thermal core control
+            if [ -w "/sys/module/msm_thermal/core_control/enabled" ]; then
+                echo '0' > "/sys/module/msm_thermal/core_control/enabled"
+            fi
+            if [ -r "/sys/devices/system/cpu/cpu0/core_ctl/enable" ]; then
+                local i st en
+                IFS="-" read st en <"/sys/devices/system/cpu/present"
+                if [ -n "$st"  -a  -n "$en"  -a "$st" -ge 0  -a  "$en" -ge 0 ]; then
+                    if [ -w "/sys/devices/system/cpu/cpu7/core_ctl/enable" ]; then
+                        # SD850 or higher type core control
+                        echo '1'  > "/sys/devices/system/cpu/cpu7/core_ctl/enable"
+                        echo '1'  > "/sys/devices/system/cpu/cpu7/core_ctl/min_cpus"
+                        echo '0'  > "/sys/devices/system/cpu/cpu7/core_ctl/enable"
+                        if [ -w "/sys/devices/system/cpu/cpu4/core_ctl/enable" ]; then
+                            echo '1'  > "/sys/devices/system/cpu/cpu4/core_ctl/enable"
+                            echo '3'  > "/sys/devices/system/cpu/cpu4/core_ctl/min_cpus"
+                            echo '0'  > "/sys/devices/system/cpu/cpu4/core_ctl/enable"
+                        fi
+                        if [ -w "/sys/devices/system/cpu/cpu0/core_ctl/enable" ]; then
+                            echo '1'  > "/sys/devices/system/cpu/cpu0/core_ctl/enable"
+                            echo '4'  > "/sys/devices/system/cpu/cpu0/core_ctl/min_cpus"
+                            echo '0'  > "/sys/devices/system/cpu/cpu0/core_ctl/enable"
+                        fi
+                    elif [ -w "/sys/devices/system/cpu/cpu4/core_ctl/enable" ]; then
+                        # SD840 or lower type core control
+                        echo '1'  > "/sys/devices/system/cpu/cpu4/core_ctl/enable"
+                        echo '4'  > "/sys/devices/system/cpu/cpu4/core_ctl/min_cpus"
+                        echo '0'  > "/sys/devices/system/cpu/cpu4/core_ctl/enable"
+                        if [ -w "/sys/devices/system/cpu/cpu0/core_ctl/enable" ]; then
+                            echo '1'  > "/sys/devices/system/cpu/cpu0/core_ctl/enable"
+                            echo '4'  > "/sys/devices/system/cpu/cpu0/core_ctl/min_cpus"
+                            echo '0'  > "/sys/devices/system/cpu/cpu0/core_ctl/enable"
+                        fi
+                    elif [ -w "/sys/devices/system/cpu/cpu0/core_ctl/enable" ]; then
+                        # unknown type core control
+                        echo '1'  > "/sys/devices/system/cpu/cpu0/core_ctl/enable"
+                        echo '4'  > "/sys/devices/system/cpu/cpu0/core_ctl/min_cpus"
+                        echo '0'  > "/sys/devices/system/cpu/cpu0/core_ctl/enable"
+                    fi
+                fi
+            fi
+            # Stop the MPDecision (CPU hotplug)
+            if [ "`getprop init.svc.mpdecision`" = "running" ]; then
+                setprop ctl.stop mpdecision
+                forceOnlineCPUs
+            elif [ "`getprop init.svc.mpdecision`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.mpdecision`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                    forceOnlineCPUs
+                fi
+            elif [ "`getprop init.svc.vendor.mpdecision`" = "running" ]; then
+                setprop ctl.stop vendor.mpdecision
+                forceOnlineCPUs
+            elif [ "`getprop init.svc.vendor.mpdecision`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.vendor.mpdecision`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                    forceOnlineCPUs
+                fi
+            fi
+            # Stop the thermal server
+            if [ "`getprop init.svc.thermal`" = "running" ]; then
+                setprop ctl.stop thermal
+            elif [ "`getprop init.svc.thermal`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.thermal`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            elif [ "`getprop init.svc.vendor.thermal`" = "running" ]; then
+                setprop ctl.stop vendor.thermal
+            elif [ "`getprop init.svc.vendor.thermal`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.vendor.thermal`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            fi
+            # Stop the mi_thermald server
+            if [ "`getprop init.svc.mi_thermald`" = "running" ]; then
+                setprop ctl.stop mi_thermald
+            elif [ "`getprop init.svc.mi_thermald`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.mi_thermald`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            elif [ "`getprop init.svc.vendor.mi_thermald`" = "running" ]; then
+                setprop ctl.stop vendor.mi_thermald
+            elif [ "`getprop init.svc.vendor.mi_thermald`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.vendor.mi_thermald`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            fi
+            # Stop the thermal-engine server
+            if [ "`getprop init.svc.thermal-engine`" = "running" ]; then
+                setprop ctl.stop thermal-engine
+            elif [ "`getprop init.svc.thermal-engine`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.thermal-engine`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            elif [ "`getprop init.svc.vendor.thermal-engine`" = "running" ]; then
+                setprop ctl.stop vendor.thermal-engine
+            elif [ "`getprop init.svc.thermal-engine`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.thermal-engine`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            fi
+            # For MediaTek CPU's
+            if [ -w "/proc/cpufreq/cpufreq_sched_disable" ]; then
+                echo '1' > "/proc/cpufreq/cpufreq_sched_disable"
+                forceOnlineCPUs
+            fi
+        
+        elif [ $flag -lt 0 ]; then
+        
+            # Start thermal core control
+             if [ -w "/sys/module/msm_thermal/core_control/enabled" ]; then
+                echo '1' > "/sys/module/msm_thermal/core_control/enabled"
+            fi
+            if [ -r "/sys/devices/system/cpu/cpu0/core_ctl/enable" ]; then
+                local st en
+                IFS="-" read st en <"/sys/devices/system/cpu/present"
+                if [ -n "$st"  -a  -n "$en"  -a "$st" -ge 0  -a  "$en" -ge 0 ]; then
+                    if [ -w "/sys/devices/system/cpu/cpu7/core_ctl/enable" ]; then
+                        # SD850 or higher type core control
+                        echo '1'  > "/sys/devices/system/cpu/cpu7/core_ctl/enable"
+                        echo '0'  > "/sys/devices/system/cpu/cpu7/core_ctl/min_cpus"
+                        if [ -w "/sys/devices/system/cpu/cpu4/core_ctl/enable" ]; then
+                            echo '1'  > "/sys/devices/system/cpu/cpu4/core_ctl/enable"
+                            echo '2'  > "/sys/devices/system/cpu/cpu4/core_ctl/min_cpus"
+                        fi
+                        if [ -w "/sys/devices/system/cpu/cpu0/core_ctl/enable" ]; then
+                            echo '1'  > "/sys/devices/system/cpu/cpu0/core_ctl/enable"
+                            echo '4'  > "/sys/devices/system/cpu/cpu0/core_ctl/min_cpus"
+                            echo '0'  > "/sys/devices/system/cpu/cpu0/core_ctl/enable"
+                        fi
+                    elif [ -w "/sys/devices/system/cpu/cpu4/core_ctl/enable" ]; then
+                        # SD840 or lower type core control
+                        echo '1'  > "/sys/devices/system/cpu/cpu4/core_ctl/enable"
+                        echo '1'  > "/sys/devices/system/cpu/cpu4/core_ctl/min_cpus"
+                        if [ -w "/sys/devices/system/cpu/cpu0/core_ctl/enable" ]; then
+                            echo '1'  > "/sys/devices/system/cpu/cpu0/core_ctl/enable"
+                            echo '1'  > "/sys/devices/system/cpu/cpu0/core_ctl/min_cpus"
+                        fi
+                    elif [ -w "/sys/devices/system/cpu/cpu0/core_ctl/enable" ]; then
+                        # unknown type core control
+                        echo '1'  > "/sys/devices/system/cpu/cpu0/core_ctl/enable"
+                        echo '1'  > "/sys/devices/system/cpu/cpu0/core_ctl/min_cpus"
+                    fi
+                fi
+            fi
+            # Start the MPDecision (CPU hotplug)
+            if [ "`getprop init.svc.mpdecision`" = "stopped" ]; then
+                setprop ctl.start mpdecision
+                forceOnlineCPUs
+            elif [ "`getprop init.svc.vendor.mpdecision`" = "stopped" ]; then
+                setprop ctl.start vendor.mpdecision
+                forceOnlineCPUs
+            fi
+            # Start the thermal server
+            if [ "`getprop init.svc.thermal`" = "stopped" ]; then
+                setprop ctl.start thermal
+            elif [ "`getprop init.svc.vendor.thermal`" = "stopped" ]; then
+                setprop ctl.start vendor.thermal
+            fi
+            # Start the mi_thermald server
+            if [ "`getprop init.svc.mi_thermald`" = "stopped" ]; then
+                setprop ctl.start mi_thermald
+            elif [ "`getprop init.svc.vendor.mi_thermald`" = "stopped" ]; then
+                setprop ctl.start vendor.mi_thermald
+            fi
+            # Start the thermal-engine server
+            if [ "`getprop init.svc.thermal-engine`" = "stopped" ]; then
+                setprop ctl.start thermal-engine
+            elif [ "`getprop init.svc.vendor.thermal-engine`" = "stopped" ]; then
+                setprop ctl.start vendor.thermal-engine
+            fi
+            # For MediaTek CPU's
+            if [ -w "/proc/cpufreq/cpufreq_sched_disable" ]; then
+                val="`searchDefaultCpuGovernor`"
+                if [ "$val" = "schedutil"  -a  "`getprop ro.vendor.build.version.release`" -lt "11" ]; then
+                    echo "    Notice: EAS hasn't been enabled, so skipping thermal MTK EAS+ enabling" 1>&2
+                else
+                    echo '0' > "/proc/cpufreq/cpufreq_sched_disable"
+                fi
+            fi
+        
+        fi
+      
+        if [ $printStatus -gt 0 ]; then
+            local found=0
+            
+            # Qualcomm Core control
+            if [ -w "/sys/module/msm_thermal/core_control/enabled" ]; then
+                if [ "`cat /sys/module/msm_thermal/core_control/enabled`" -eq 0 ]; then
+                    echo "  Thermal msm_thermal: disabled"
+                else
+                    echo "  Thermal msm_thermal: enabled"
+                fi
+                found=1
+            fi
+            if [ -r "/sys/devices/system/cpu/cpu0/core_ctl/enable" ]; then
+                local i st en ctl_enabled=0
+                IFS="-" read st en <"/sys/devices/system/cpu/present"
+                if [ -n "$st"  -a  -n "$en"  -a "$st" -ge 0  -a  "$en" -ge 0 ]; then
+                    if [ -r "/sys/devices/system/cpu/cpu7/core_ctl/enable" ]; then
+                        read ctl_enabled <"/sys/devices/system/cpu/cpu7/core_ctl/enable"
+                    elif [ -r "/sys/devices/system/cpu/cpu4/core_ctl/enable" ]; then
+                        read ctl_enabled <"/sys/devices/system/cpu/cpu4/core_ctl/enable"
+                    elif [ -r "/sys/devices/system/cpu/cpu0/core_ctl/enable" ]; then
+                        read ctl_enabled <"/sys/devices/system/cpu/cpu0/core_ctl/enable"
+                    fi
+                    if [ "$ctl_enabled" -gt 0 ]; then
+                        echo "  Thermal core_ctl: enabled"
+                    else
+                        echo "  Thermal core_ctl: disabled"
+                    fi
+                    found=1
+                fi
+            fi
+            if [ -n "`getprop init.svc.thermal`" ]; then
+                echo "  Thermal server: `getprop init.svc.thermal`"
+                found=1
+            elif [ -n "`getprop init.svc.vendor.thermal`" ]; then
+                echo "  Thermal server: `getprop init.svc.vendor.thermal`"
+                found=1
+            fi
+            if [ -n "`getprop init.svc.mi_thermald`" ]; then
+                echo "  Thermal mi_thermald: `getprop init.svc.mi_thermald`"
+                found=1
+            elif [ -n "`getprop init.svc.vendor.mi_thermald`" ]; then
+                echo "  Thermal mi_thermald: `getprop init.svc.vendor.mi_thermald`"
+                found=1
+            fi
+            if [ -n "`getprop init.svc.thermal-engine`" ]; then
+                echo "  Thermal thermal-engine: `getprop init.svc.thermal-engine`"
+                found=1
+            elif [ -n "`getprop init.svc.vendor.thermal-engine`" ]; then
+                echo "  Thermal thermal-engine: `getprop init.svc.vendor.thermal-engine`"
+                found=1
+            fi
+
+            # MPDecision
+            if [ -n "`getprop init.svc.mpdecision`" ]; then
+                echo "  Thermal MPDecision: `getprop init.svc.mpdecision`"
+                found=1
+            elif [ -n "`getprop init.svc.vendor.mpdecision`" ]; then
+                echo "  Thermal MPDecision: `getprop init.svc.vendor.mpdecision`"
+                found=1
+            fi
+
+            # MediaTek EAS+ scheduling
+            if [ -r "/proc/cpufreq/cpufreq_sched_disable" ]; then
+                set `cat /proc/cpufreq/cpufreq_sched_disable`
+                val=$3
+                if [ "$val" -eq '1' ]; then
+                    echo "  Thermal MTK EAS+: stopped"
+                else
+                    echo "  Thermal MTK EAS+: running"
+                fi
+                found=1
+            fi
+            
+            if [ $found -eq 0 ]; then
+                echo "  Thermal control: N/A"
+            fi
+        # End of status print section
+        fi
+        
+    else
+        return 1
+    fi
+}
+
+function reduceDozeJitter()
+{
+    if [ $# -eq 2 ]; then
+        local flag="$1"
+        local printStatus="$2"
+
+        if [ $flag -gt 0 ]; then
+            # Disable Doze of the device
+            dumpsys deviceidle disable all 1>"/dev/null" 2>&1
+        elif [ $flag -lt 0 ]; then
+            # Enable Doze of the device
+            dumpsys deviceidle enable all 1>"/dev/null" 2>&1
+        fi
+        
+        if [ $printStatus -gt 0 ]; then
+            if [ "`dumpsys deviceidle enabled all`" -gt 0 ]; then
+                echo "  Doze battery saver: enabled"
+            else
+                echo "  Doze battery saver: disabled"
+            fi
+        fi
+        
+    else
+        return 1
+    fi
+}
+
+function getQcomGpuFreq()
+{
+    local isMax="0"
+    
+    if [ $# -eq 1  -a  "$1" = "max" ]; then
+        isMax="1"
+    fi
+    
+    if [ -r "/sys/class/kgsl/kgsl-3d0/gpu_available_frequencies"  -a  -r "/sys/class/kgsl/kgsl-3d0/min_pwrlevel" ]; then
+        local tab x y freq=""
+        
+        read tab <"/sys/class/kgsl/kgsl-3d0/gpu_available_frequencies"
+        if [ -z "$tab" ]; then
+            return 1
+        fi
+        set $tab 1>"/dev/null" 2>&1
+        
+        if [ "$isMax" -eq 1 ]; then
+            freq="$1"
+        elif [ -r "/sys/class/kgsl/kgsl-3d0/default_pwrlevel" ]; then
+            read x <"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+            read y <"/sys/class/kgsl/kgsl-3d0/default_pwrlevel"
+            if [ "$y" -lt "$x" ]; then
+                x="$y"
+            fi
+            if [ "$x" -lt $# ]; then
+                shift $x
+            fi
+            freq="$1"
+        else
+            # no estimation possible, so check the current real GPU clock
+            read freq <"/sys/class/kgsl/kgsl-3d0/gpuclk"
+        fi
+        
+        if [ -n "$freq" ]; then
+            echo "$freq"
+            return 0
+        else
+            return 1
+        fi
+        
+    else
+        return 1
+    fi
+}
+
+function getMtkGpuFreqKhz()
+{
+    local isMax="0"
+    
+    if [ $# -eq 1  -a  "$1" = "max" ]; then
+        isMax="1"
+    fi
+    
+    if [ -r "/proc/gpufreq/gpufreq_opp_dump" ]; then
+        local x1 x2 x3 x4 x5 freq="" IFS=" ,"
+        
+        if [ "$isMax" -eq 1 ]; then
+            read x1 x2 x3 x4 x5 <"/proc/gpufreq/gpufreq_opp_dump"
+            freq="$x4"
+        else
+            while read x1 x2 x3 x4 x5; do
+                freq="$x4"
+            done <"/proc/gpufreq/gpufreq_opp_dump"
+        fi
+        
+        if [ -n "$freq" ]; then
+            echo "$freq"
+            return 0
+        else
+            return 1
+        fi
+        
+    else
+        return 1
+    fi
+}
+
+function isMtkGpuFreqFixed()
+{
+    if [ -r "/proc/gpufreq/gpufreq_opp_freq" ]; then
+        local x1 x2 x3 x4 x5
+        read x1 x2 x3 x4 x5 <"/proc/gpufreq/gpufreq_opp_freq"
+        if [ "$x5" = "enabled" ]; then
+            return 0
+        else
+            return 1
+        fi
+    else
+        return 1
+    fi
+}
+
+function reduceGovernorJitter()
+{
+    if [ $# -eq 2 ]; then
+        local flag="$1"
+        local printStatus="$2"
+
+        if [ $flag -gt 0 ]; then
+        
+            # CPU governor
+            # prevent CPU offline stuck by forcing online between double  governor writing 
+            local i st en x
+            IFS="-" read st en <"/sys/devices/system/cpu/present"
+            if [ -n "$st"  -a  -n "$en"  -a "$st" -ge 0  -a  "$en" -ge 0 ]; then
+                for i in `seq $st $en`; do
+                    if [ -e "/sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor" ]; then
+                        chmod 644 "/sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor"
+                        echo 'performance' >"/sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor"
+                        chmod 644 "/sys/devices/system/cpu/cpu$i/online"
+                        echo '1' >"/sys/devices/system/cpu/cpu$i/online"
+                        echo 'performance' >"/sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor"
+                    fi
+                done
+            fi
+            # GPU's
+            if [ -w "/sys/class/kgsl/kgsl-3d0/pwrscale/trustzone/governor" ]; then
+                # For old Qcomm GPU's
+                echo 'performance' >"/sys/class/kgsl/kgsl-3d0/pwrscale/trustzone/governor"
+                if [ -w "/sys/class/kgsl/kgsl-3d0/min_pwrlevel" ]; then
+                    # Set the min power level to be maximum
+                    echo "0" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                fi
+            elif [ -w "/sys/class/kgsl/kgsl-3d0/devfreq/governor" ]; then
+                # For Qcomm GPU's
+                echo 'performance' >"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
+                sleep 0.1
+                if [ -w "/sys/class/kgsl/kgsl-3d0/min_pwrlevel" ]; then
+                    # Set the min power level to be maximum
+                    echo "0" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                fi
+                # For some Qcomm GPU's, because they revert the governor after setting min_pwrlevel several times
+                for i in `seq 1 5`; do
+                    sleep 0.${i}
+                    read x <"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
+                    if [ "$x" = "performance" ]; then
+                        break
+                    fi
+                    echo 'performance' >"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
+                done
+            elif [ -w "/proc/gpufreq/gpufreq_opp_freq" ]; then
+                # Maximum fixed frequency setting for MediaTek GPU's
+                local freq="`getMtkGpuFreqKhz \"max\"`"
+                if [ -n "$freq" ]; then
+                    echo "$freq" >"/proc/gpufreq/gpufreq_opp_freq"
+                fi
+            fi
+            
+        elif [ $flag -lt 0 ]; then
+        
+            local gov="`searchDefaultCpuGovernor`"
+            # prevent CPU offline stuck by forcing online between double  governor writing
+            local i st en
+            IFS="-" read st en <"/sys/devices/system/cpu/present"
+            if [ -n "$st"  -a  -n "$en"  -a "$st" -ge 0  -a  "$en" -ge 0 ]; then
+                for i in `seq $st $en`; do
+                    if [ -e "/sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor" ]; then
+                        chmod 644 "/sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor"
+                        echo "$gov" >"/sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor"
+                        chmod 644 "/sys/devices/system/cpu/cpu$i/online"
+                        echo '1' >"/sys/devices/system/cpu/cpu$i/online"
+                        echo "$gov" >"/sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor"
+                    fi
+                done
+            fi
+
+            if [ -w "/sys/class/kgsl/kgsl-3d0/pwrscale/trustzone/governor" ]; then
+                # Default GPU governor for old Qcomm GPU's
+                echo 'ondemand' >"/sys/class/kgsl/kgsl-3d0/pwrscale/trustzone/governor"
+                if [ -r "/sys/class/kgsl/kgsl-3d0/num_pwrlevels"  -a  -w "/sys/class/kgsl/kgsl-3d0/min_pwrlevel" ]; then
+                    # Set the min power level to be minimum
+                    local x="4"
+                    read x <"/sys/class/kgsl/kgsl-3d0/num_pwrlevels"
+                    x="`expr $x - 1`"
+                    if [ -n "$x" ]; then
+                        echo "$x" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                    fi
+                fi
+            elif [ -w "/sys/class/kgsl/kgsl-3d0/devfreq/governor" ]; then
+                # Default GPU governor for Qcomm GPU's
+                echo 'msm-adreno-tz' >"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
+                if [ -r "/sys/class/kgsl/kgsl-3d0/num_pwrlevels"  -a  -w "/sys/class/kgsl/kgsl-3d0/min_pwrlevel" ]; then
+                    # Set the min power level to be minimum
+                    local x="6"
+                    read x <"/sys/class/kgsl/kgsl-3d0/num_pwrlevels"
+                    x="`expr $x - 1`"
+                    if [ -n "$x" ]; then
+                        echo "$x" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                    fi
+                fi
+                # For some Qcomm GPU's, because they revert the governor after setting min_pwrlevel
+                echo 'msm-adreno-tz' >"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
+                # For a certain Kernel, because it is not effective only once
+                sleep 0.1
+                echo 'msm-adreno-tz' >"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
+            elif [ -w "/proc/gpufreq/gpufreq_opp_freq" ]; then
+                # Variable frequency setting for MediaTek GPU's
+                echo '0' >"/proc/gpufreq/gpufreq_opp_freq"
+            fi
+            
+        fi
+        
+        if [ $printStatus -gt 0 ]; then
+            #CPU Governor
+            if [ -r "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor" ]; then
+                echo "  Governor CPU: `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`"
+            fi
+            
+            if [ -r "/sys/class/kgsl/kgsl-3d0/pwrscale/trustzone/governor" ]; then
+                # For old Qcomm GPU Governor
+                local freq gov
+                read gov <"/sys/class/kgsl/kgsl-3d0/pwrscale/trustzone/governor"
+                if [ "$gov" = "performance" ]; then
+                    freq="`getQcomGpuFreq \"max\"`"
+                    freq="`expr $freq / 1000000`MHz"
+                    echo "  Governor GPU: performance (fixed: $freq)"
+                else
+                    freq="`getQcomGpuFreq \"typical\"`"
+                    freq="`expr $freq / 1000000`Mhz"
+                    echo "  Governor GPU: $gov (typical: $freq)"
+                fi
+            elif [ -w "/sys/class/kgsl/kgsl-3d0/devfreq/governor" ]; then
+                # For Qcomm GPU Governor
+                local freq gov
+                read gov <"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
+                if [ "$gov" = "performance" ]; then
+                    freq="`getQcomGpuFreq \"max\"`"
+                    freq="`expr $freq / 1000000`MHz"
+                    echo "  Governor GPU: performance (fixed: $freq)"
+                else
+                    freq="`getQcomGpuFreq \"typical\"`"
+                    freq="`expr $freq / 1000000`MHz"
+                    echo "  Governor GPU: $gov (typical: $freq)"
+                fi
+            elif [ -r "/proc/gpufreq/gpufreq_opp_freq" ]; then
+                # For getting MediaTek GPU settings
+                local freq
+                if isMtkGpuFreqFixed; then
+                    freq="`getMtkGpuFreqKhz \"max\"`"
+                    freq="`expr $freq / 1000`MHz"
+                    echo "  Governor GPU: max freq (fixed: $freq)"
+                else
+                    freq="`getMtkGpuFreqKhz \"typical\"`"
+                    freq="`expr $freq / 1000`MHz"
+                    echo "  Governor GPU: variable freq (typical: $freq)"
+                fi
+            fi
+        fi
+        
+    else
+        return 1
+    fi
+}
+
+function reduceLogdJitter()
+{
+    if [ $# -eq 2 ]; then
+        local flag="$1"
+        local printStatus="$2"
+
+        if [ $flag -gt 0 ]; then
+        
+            # Stop the Logd servers
+            if [ "`getprop init.svc.logd`" = "running" ]; then
+                setprop ctl.stop logd
+            elif [ "`getprop init.svc.logd`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.logd`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            fi
+            if [ "`getprop init.svc.traced`" = "running" ]; then
+                setprop ctl.stop traced
+            elif [ "`getprop init.svc.traced`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.traced`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            fi
+            if [ "`getprop init.svc.traced_probes`" = "running" ]; then
+                setprop ctl.stop traced_probes
+            elif [ "`getprop init.svc.traced_probes`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.traced_probes`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            fi
+            
+        elif [ $flag -lt 0 ]; then
+        
+            # Start the Logd servers
+            if [ "`getprop init.svc.traced_probes`" = "stopped" ]; then
+                setprop ctl.start traced_probes
+            elif [ "`getprop init.svc.traced_probes`" = "stopping" ]; then
+                setprop ctl.restart traced_probes
+            fi
+            if [ "`getprop init.svc.traced`" = "stopped" ]; then
+                setprop ctl.start traced
+            elif [ "`getprop init.svc.traced`" = "stopping" ]; then
+                setprop ctl.restart traced
+            fi
+            if [ "`getprop init.svc.logd`" = "stopped" ]; then
+                setprop ctl.start logd
+            elif [ "`getprop init.svc.logd`" = "stopping" ]; then
+                setprop ctl.restart logd
+            fi
+            
+        fi
+        
+        if [ $printStatus -gt 0 ]; then
+            local val="`getprop init.svc.logd`"
+            if [ -n  "$val" ]; then
+                echo "  Logd main server: $val"
+            fi
+            val="`getprop init.svc.traced`"
+            if [ -n  "$val" ]; then
+                echo "  Logd traced server: $val"
+            fi
+            val="`getprop init.svc.traced_probes`"
+            if [ -n  "$val" ]; then
+                echo "  Logd traced_probes server: $val"
+            fi
+        fi
+        
+    else
+        return 1
+    fi
+}
+
+function reduceCameraJitter()
+{
+    if [ $# -eq 2 ]; then
+        local flag="$1"
+        local printStatus="$2"
+
+        if [ $flag -gt 0 ]; then
+        
+            # Stop the camera servers
+            if [ "`getprop init.svc.qcamerasvr`" = "running" ]; then
+                setprop ctl.stop qcamerasvr
+            elif [ "`getprop init.svc.qcamerasvr`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.qcamerasvr`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            fi
+            if [ "`getprop init.svc.vendor.qcamerasvr`" = "running" ]; then
+                setprop ctl.stop vendor.qcamerasvr
+            elif [ "`getprop init.svc.vendor.qcamerasvr`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.vendor.qcamerasvr`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            fi
+            if [ "`getprop init.svc.cameraserver`" = "running" ]; then
+                setprop ctl.stop cameraserver
+            elif [ "`getprop init.svc.cameraserver`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.cameraserver`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            fi
+            if [ "`getprop init.svc.camerasloganserver`" = "running" ]; then
+                setprop ctl.stop camerasloganserver
+            elif [ "`getprop init.svc.camerasloganserver`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.camerasloganserver`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            fi
+            if [ "`getprop init.svc.camerahalserver`" = "running" ]; then
+                setprop ctl.stop camerahalserver
+            elif [ "`getprop init.svc.camerahalserver`" = "stopping" ]; then
+                local pid="`getprop init.svc_debug_pid.camerahalserver`"
+                if [ -n "$pid" ]; then
+                    kill -HUP $pid 1>"/dev/null" 2>&1
+                fi
+            fi
+            
+        elif [ $flag -lt 0 ]; then
+        
+            # Start the camera servers
+            if [ "`getprop init.svc.qcamerasvr`" = "stopped" ]; then
+                setprop ctl.start qcamerasvr
+            elif [ "`getprop init.svc.qcamerasvr`" = "stopping" ]; then
+                setprop ctl.restart qcamerasvr
+            fi
+            if [ "`getprop init.svc.vendor.qcamerasvr`" = "stopped" ]; then
+                setprop ctl.start vendor.qcamerasvr
+            elif [ "`getprop init.svc.vendor.qcamerasvr`" = "stopping" ]; then
+                setprop ctl.restart vendor.qcamerasvr
+            fi
+            if [ "`getprop init.svc.cameraserver`" = "stopped" ]; then
+                setprop ctl.start cameraserver
+            fi
+            if [ "`getprop init.svc.camerasloganserver`" = "stopped" ]; then
+                setprop ctl.start camerasloganserver
+            fi
+            if [ "`getprop init.svc.camerahalserver`" = "stopped" ]; then
+                setprop ctl.start camerahalserver
+            fi
+            
+        fi
+        
+        if [ $printStatus -gt 0 ]; then
+            local val="`getprop init.svc.qcamerasvr`"
+            if [ -n  "$val" ]; then
+                echo "  Qcom camera server: $val"
+                return 0
+            fi
+            val="`getprop init.svc.vendor.qcamerasvr`"
+            if [ -n  "$val" ]; then
+                echo "  Qcom camera server: $val"
+                return 0
+            fi
+            val="`getprop init.svc.cameraserver`"
+            if [ -n  "$val" ]; then
+                echo "  Camera server: $val"
+                return 0
+            fi
+        fi
+        
+    else
+        return 1
+    fi
+}
+
+# choose the best I/O scheduler for very Hifi audio outputs, and output it into the standard output
+function chooseBestIOScheduler()
+{
+    if [ $# -eq 1  -a  -r "$1" ]; then
+        local x scheds ret_val=""
+  
+        scheds="`tr -d '[]' <\"$1\"`"
+        for x in $scheds; do
+            case "$x" in
+                "deadline" ) ret_val="deadline"; break ;;
+                "mq-deadline" ) ret_val="mq-deadline"; break ;;
+                "kyber" ) ret_val="kyber" ;;
+                "cfq" ) if [ "$ret_val" != "kyber" ]; then ret_val="cfq"; fi ;;
+                "noop" | "none" ) if [ "$ret_val" != "cfq"  -o  "$ret_val" != "kyber" ]; then ret_val="$x"; fi ;;
+                * ) ;;
+            esac
+        done
+        echo "$ret_val"
+        return 0
+    else
+        return 1
+    fi
+}
+
+function selectedScheduler()
+{
+    if [ $# -eq 1  -a  -r "$1" ]; then
+        local sched="`cat \"$1\"`"
+        if [ -n "$sched" ]; then
+            local val
+            val=`expr "$sched" : '[^[]*\[\([^]]*\)\]'`
+            echo "$val"
+            return 0
+        else
+            return 1
+        fi
+        
+    else
+        return 1
+    fi
+}
+
+function validScheduler()
+{
+    if [ $# -eq 2  -a  -r "$1" ]; then
+        local lst
+        local sched="$2"
+        local i
+        lst="`tr -d '[]' <\"$1\"`"
+        for i in $lst; do
+            if [ "$i" = "$sched" ]; then
+                return 0
+            fi
+        done
+        return 1
+    else
+        return 1
+    fi
+}
+
+function nth()
+{
+    if [ $# -eq 2  -a  -n "$1" ]; then
+    
+        if [ -n "$2"  -a  "$2" -gt 0 ]; then
+        
+            local v
+            local i=1
+            
+            for v in $1; do
+                if [ "$2" -eq "$i" ]; then
+                    echo "$v"
+                    return 0
+                else
+                    i="`expr $i + 1`"
+                fi
+            done
+            return 1
+            
+        else
+        
+            retrun 1
+            
+        fi
+        
+    else
+    
+        return 1
+        
+    fi
+}
+
+function getSocModelName()
+{
+    local modelName="`getprop ro.board.platform`"
+    case "$modelName" in
+            sd* | msm* | exynos* | mt* )
+                echo "$modelName"
+                return 0
+                ;;
+            * )
+                case "`getprop ro.boot.hardware`" in
+                    qcom )
+                        # High performance Qcomm SoC devices tend to have code names
+                        case "$modelName" in
+                            "kona" )
+                                echo "sdm870"
+                                ;;
+                            * )
+                                 if [ -r "/sys/devices/system/cpu/cpu7/core_ctl/enable" ]; then
+                                    echo "sdm855"
+                                 else
+                                    echo "sdm845"
+                                 fi
+                                ;;
+                        esac
+                        return 0
+                        ;;
+                    * )
+                        echo "unknown"
+                        return 0
+                        ;;
+                esac
+                ;;
+    esac
+    
+    return 1
+}
+
+function adjustForSoC()
+{
+    if [ $# -eq 1  -a  -n "$1"  -a  "$1" -ge 0 ]; then
+        
+        local kername="`uname -r`"
+        kername=${kername##*-}
+        if [ "$kername" = "Nyx"  -a  "`getprop ro.system.build.version.release`" -ge "13" ]; then
+            # Round off (<7) for the Nyx kernel & A13 or later
+            echo "`expr  '(' '(' $1 + 3 ')' / 10 ')' '*' 10`"
+            return 0
+        fi
+        
+        case "`getSocModelName`" in
+            sdm* | msm* | sd* | exynos* )
+                echo "`expr  '(' $1 / 10 ')' '*' 10 + '(' '(' $1 % 10 ')' / 3 ')' '*' 3`"
+                ;;
+            mt6* )
+                echo "`expr '(' '(' $1 + 1 ')' / 4 ')' '*' 4`"
+                ;;
+            * )
+                echo "$1"
+                ;;
+        esac
+        return 0
+        
+    else
+        
+        return 1
+        
+    fi
+}
+
+function adjustSchedulerParameter()
+{
+    if [ $# -eq 3 ]; then
+        
+        if [ \( "$1" = "deadline"  -o  "$1" = "mq-deadline" \)  -a  -n "$2"  -a  -n "$3" ]; then
+            case "$2" in
+                "read_expire" )
+                    echo "`adjustForSoC \"$3\"`"
+                    ;;
+                "write_expire" )
+                    echo "`adjustForSoC \"$3\"`"
+                    ;;
+                * )
+                    echo "$3"
+                    ;;
+            esac
+        else
+            echo "$3"
+        fi
+        return 0
+        
+    else
+        
+        return 1
+        
+    fi
+}
+
+function getSchedulerParams()
+{
+    if [ $# -eq 1 ]; then
+        case "$1" in
+            "deadline" | "mq-deadline" )
+                echo "fifo_batch front_merges read_expire write_expire writes_starved"
+                ;;
+            "cfq" )
+                echo "back_seek_penalty fifo_expire_async fifo_expire_sync group_idle low_latency quantum slice_async slice_async_rq \
+                    slice_idle slice_sync target_latency"
+                ;;
+            "kyber" )
+                echo "read_lat_nsec write_lat_nsec"
+                ;;
+            "noop" | "none" | * )
+                echo ""
+                ;;
+        esac
+        return 0
+    else
+        return 1
+    fi
+}
+
+function getSchedulerValues()
+{
+    if [ $# -eq 2 ]; then
+        case "$1" in
+            "deadline" | "mq-deadline" )
+                #   fifo_batch front_merges read_expire write_expire writes_starved
+                case "$2" in
+                    "light" )
+                        case "`getSocModelName`" in
+                            sdm8[5-9]* | sdm9* )
+                                echo "43 0 20 488 0"
+                                ;;
+                            sdm8* )
+                                echo "42 0 16 488 0"
+                                ;;
+                            * )
+                                echo "42 0 16 484 0"
+                                ;;
+                        esac
+                        ;;
+                    "m-light" )
+                        case "`getSocModelName`" in
+                            sdm8[5-9]* | sdm9* )
+                                echo "78 0 32 504 0"
+                                ;;
+                            sdm8* )
+                                echo "49 0 24 500 0"
+                                ;;
+                            sdm* | msm* | sd* | exynos* )
+                                echo "49 0 24 500 0"
+                                ;;
+                            mt68* )
+                                echo "52 0 24 500 0"
+                                ;;
+                            mt67[7-9]? )
+                                echo "48 0 24 496 0"
+                                ;;
+                            * )
+                                echo "48 0 24 496 0"
+                                ;;
+                        esac
+                        ;;
+                    "boost" )
+                        case "`getSocModelName`" in
+                            sdm8[5-9]* | sdm9* )
+                                echo "75 0 32 500 0"
+                                ;;
+                            sdm8* )
+                                echo "75 0 34 500 0"
+                                ;;
+                            sdm* | msm* | sd* | exynos* )
+                                echo "75 0 34 500 0"
+                                ;;
+                            mt68* )
+                                echo "68 0 32 504 0"
+                                ;;
+                            mt67[7-9]? )
+                                echo "68 0 32 504 0"
+                                ;;
+                            * )
+                                echo "68 0 32 504 0"
+                                ;;
+                        esac
+                        ;;
+                    "medium" | *)
+                        case "`getSocModelName`" in
+                            sdm8[5-9]* | sdm9* )
+                                echo "75 0 32 500 0"
+                                ;;
+                            sdm8* )
+                                echo "74 0 34 504 0"
+                                ;;
+                            sdm* | msm* | sd* | exynos* )
+                                echo "74 0 34 504 0"
+                                ;;
+                            mt68* )
+                                echo "64 0 32 504 0"
+                                ;;
+                            mt67[7-9]? )
+                                echo "64 0 32 504 0"
+                                ;;
+                            * )
+                                echo "64 0 32 504 0"
+                                ;;
+                        esac
+                        ;;
+                esac
+                ;;
+                
+            "cfq" )
+                #   back_seek_penalty fifo_expire_async fifo_expire_sync group_idle low_latency quantum slice_async slice_async_rq
+                #       slice_idle slice_sync target_latency
+                case "$2" in
+                    "light" )
+                        echo "1 3 3 0 1 1 3 23 0 3 3"
+                        ;;
+                    "m-light" )
+                        echo "1 3 3 0 1 1 3 26 0 3 3"
+                        ;;
+                    "boost" )
+                        echo "1 3 3 0 1 1 3 34 0 3 3"
+                        ;;
+                    "medium" | * )
+                        echo "1 3 3 0 1 1 3 29 0 3 3"
+                        ;;
+                esac
+                ;;
+                
+            "kyber" )
+                #  read_lat_nsec write_lat_nsec
+                echo "1000000 1000000"
+                ;;
+                
+            "noop" | "none" | * )
+                echo ""
+                ;;
+                
+        esac
+        return 0
+    else
+        return 1
+    fi
+}
+
+function getSchedulerNrRequests()
+{
+    if [ $# -eq 2 ]; then
+        
+        case "$1" in
+            "deadline" | "mq-deadline" )
+                case "$2" in
+                    "light" )
+                        case "`getSocModelName`" in
+                            sdm8[5-9]* | sdm9* )
+                                echo "80645"
+                                ;;
+                            sdm8* )
+                                echo "80000"
+                                ;;
+                            sdm* | msm* | sd* | exynos* )
+                                echo "81660"
+                                ;;
+                            * )
+                                echo "78550"
+                                ;;
+                        esac
+                        ;;
+                    "m-light" )
+                        case "`getSocModelName`" in
+                            sdm8[5-9]* | sdm9* )
+                                echo "85950"
+                                ;;
+                            sdm8* )
+                                echo "83965"
+                                ;;
+                            sdm* | msm* | sd* | exynos* )
+                                echo "82861"
+                                ;;
+                            mt68* )
+                                echo "83953"
+                                ;;
+                            mt67[6-9]? )
+                                echo "83953"
+                                ;;
+                            * )
+                                echo "83373"
+                                ;;
+                        esac
+                        ;;
+                    "boost" )
+                        case "`getSocModelName`" in
+                            sdm8[5-9]* | sdm9* )
+                                echo "86117"
+                                ;;
+                            sdm8* )
+                                echo "86110"
+                                ;;
+                            sdm* | msm* | sd* | exynos* )
+                                echo "86110"
+                                ;;
+                            mt68* )
+                                echo "86120"
+                                ;;
+                            mt67[7-9]? )
+                                echo "86120"
+                                ;;
+                            * )
+                                echo "86120"
+                                ;;
+                        esac
+                        ;;
+                    "medium" | * )
+                        case "`getSocModelName`" in
+                            sdm8[5-9]* | sdm9* )
+                                echo "86116"
+                                ;;
+                            sdm8* )
+                                echo "85951"
+                                ;;
+                            sdm* | msm* | sd* | exynos* )
+                                echo "85951"
+                                ;;
+                            mt68* )
+                                echo "85977"
+                                ;;
+                            mt67[6-9]? )
+                                echo "85977"
+                                ;;
+                            * )
+                                echo "85977"
+                                ;;
+                        esac
+                        ;;
+                esac
+                ;;
+                
+            "cfq" )
+                case "$2" in
+                    "light" )
+                        case "`getSocModelName`" in
+                            sdm* | msm* | sd* | exynos* )
+                                echo "14540"
+                                ;;
+                            * )
+                                echo "14392"
+                                ;;
+                        esac
+                        ;;
+                    "m-light" )
+                        case "`getSocModelName`" in
+                            sdm* | msm* | sd* | exynos* )
+                                echo "31170"
+                                ;;
+                            * )
+                                echo "30545"
+                                ;;
+                        esac
+                        ;;
+                    "boost" )
+                        case "`getSocModelName`" in
+                            sdm* | msm* | sd* | exynos* )
+                                echo "83587"
+                                ;;
+                            * )
+                                echo "83587"
+                                ;;
+                        esac
+                        ;;
+                    "medium" | * )
+                        case "`getSocModelName`" in
+                            sdm* | msm* | sd* | exynos* )
+                                echo "81940"
+                                ;;
+                            * )
+                                echo "82200"
+                                ;;
+                        esac
+                        ;;
+                esac
+                ;;
+                
+            "kyber" )
+                echo "2048"
+                ;;
+            
+            "noop" | "none" | * )
+                case "$2" in
+                    "light" )
+                        case "`getSocModelName`" in
+                            sdm* | msm* | sd* | exynos* )
+                                echo "80645"
+                                ;;
+                            * )
+                                echo "81660"
+                                ;;
+                        esac
+                        ;;
+                    "m-light" )
+                        case "`getSocModelName`" in
+                            sdm* | msm* | sd* | exynos* )
+                                echo "83853"
+                                ;;
+                            * )
+                                echo "83953"
+                                ;;
+                        esac
+                        ;;
+                    "boost" )
+                        case "`getSocModelName`" in
+                            sdm* | msm* | sd* | exynos* )
+                                echo "86094"
+                                ;;
+                            * )
+                                echo "85927"
+                                ;;
+                        esac
+                        ;;
+                    "medium" | * )
+                        case "`getSocModelName`" in
+                            sdm* | msm* | sd* | exynos* )
+                                echo "86055"
+                                ;;
+                            * )
+                                echo "85977"
+                                ;;
+                        esac
+                        ;;
+                esac
+               ;;
+                
+        esac
+        return 0
+    else
+        return 1
+    fi
+}
+
+function reduceIoJitter() 
+{
+    if [ $# -eq 4 ]; then
+        local flag="$1"
+        local ioScheduler="$2"
+        local toneMode="$3"
+        local printStatus="$4"
+
+        if [ $flag -gt 0 ]; then
+        
+            local sched params vals nr_requests
+            local i p v j
+            for i in sda mmcblk0 mmcblk1; do
+                if [ -d "/sys/block/$i/queue" ]; then
+                    if [ -z "$ioScheduler"  -o  "$ioScheduler" = "*" ]; then
+                        sched="`chooseBestIOScheduler \"/sys/block/$i/queue/scheduler\"`"
+                    else
+                        sched="$ioScheduler"
+                    fi
+                    if validScheduler "/sys/block/$i/queue/scheduler" "$sched"; then
+                        
+                        params="`getSchedulerParams \"$sched\"`"
+                        vals="`getSchedulerValues \"$sched\" \"$toneMode\"`"
+                        nr_requests="`getSchedulerNrRequests \"$sched\" \"$toneMode\"`"
+                        echo "$sched" >"/sys/block/$i/queue/scheduler"
+                        echo '16384' >"/sys/block/$i/queue/read_ahead_kb"
+                        echo '0' >"/sys/block/$i/queue/iostats"
+                        echo '0' >"/sys/block/$i/queue/add_random"
+                        echo '2' >"/sys/block/$i/queue/rq_affinity"
+                        echo '2' >"/sys/block/$i/queue/nomerges"
+                        echo "$nr_requests" >"/sys/block/$i/queue/nr_requests"
+                        # waiting for kenel tunables syncing
+                        sleep 0.05
+                        read v <"/sys/block/$i/queue/nr_requests"
+                        if [ "$nr_requests" -ne "$v" ]; then
+                            # If exceeding its max value, then use a safe Nyx kenel value 2048 (except its "none" scheduler)
+                            echo "2048" >"/sys/block/$i/queue/nr_requests"
+                        fi
+                        j=1
+                        for p in $params; do
+                            v="`nth \"$vals\" \"$j\"`"
+                            v="`adjustSchedulerParameter \"$sched\" \"$p\" \"$v\"`"
+                            if [ -w "/sys/block/$i/queue/iosched/$p"  -a  -n "$v"  -a  "$v" -ge 0 ]; then
+                                echo "$v" >"/sys/block/$i/queue/iosched/$p"
+                            fi
+                            j="`expr $j + 1`"
+                        done
+                        
+                    else
+                        
+                        local sched_lst="`tr -d '[]'  <\"/sys/block/$i/queue/scheduler\"`"
+                        echo "Warning: ignoring wrong I/O scheduler (\"$sched\") settings for block device \"/dev/$i\"." 1>&2
+                        echo "  available I/O schedulers: $sched_lst" 1>&2
+                        
+                    fi
+                fi
+            done
+            
+        elif [ $flag -lt 0 ]; then
+        
+            for i in sda mmcblk0 mmcblk1; do
+                if [ -d "/sys/block/$i/queue" ]; then
+                    if validScheduler "/sys/block/$i/queue/scheduler" "noop"; then
+                        echo 'noop' >"/sys/block/$i/queue/scheduler"
+                        sleep 0.05
+                    elif validScheduler "/sys/block/$i/queue/scheduler" "none"; then
+                        echo 'none' >"/sys/block/$i/queue/scheduler"
+                        sleep 0.05
+                    fi
+                    
+                    if validScheduler "/sys/block/$i/queue/scheduler" "cfq"; then
+                        echo 'cfq' >"/sys/block/$i/queue/scheduler"
+                        sleep 0.05
+                    elif validScheduler "/sys/block/$i/queue/scheduler" "kyber"; then
+                        echo 'kyber' >"/sys/block/$i/queue/scheduler"
+                        sleep 0.05
+                    elif validScheduler "/sys/block/$i/queue/scheduler" "bfq"; then
+                        echo 'bfq' >"/sys/block/$i/queue/scheduler"
+                        sleep 0.05
+                    fi
+                    
+                    case "`getSocModelName`" in
+                        sdm8[5-9]* | sdm9* | sdm66* )
+                            echo '512' >"/sys/block/$i/queue/read_ahead_kb"
+                            ;;
+                        * )
+                            echo '128' >"/sys/block/$i/queue/read_ahead_kb"
+                            ;;
+                    esac
+                    echo '1' >"/sys/block/$i/queue/iostats"
+                    echo '0' >"/sys/block/$i/queue/add_random"
+                    echo '1' >"/sys/block/$i/queue/rq_affinity"
+                    echo '0' >"/sys/block/$i/queue/nomerges"
+                    echo '128' >"/sys/block/$i/queue/nr_requests"
+                fi
+            done
+            
+        fi
+        
+        if [ $printStatus -gt 0 ]; then
+            local i j val lst
+            for i in sda mmcblk0 mmcblk1; do
+                if [ -d "/sys/block/$i/queue" ]; then
+                    val="`selectedScheduler \"/sys/block/$i/queue/scheduler\"`"
+                    echo "  I/O scheduler: $val"
+                    lst="`ls \"/sys/block/$i/queue/iosched/\"*`" 2>"/dev/null"
+                    if [ -n "$lst" ]; then
+                        echo "    {"
+                        for j in $lst; do
+                            val="`cat \"$j\"`"
+                            echo "      ${j##*/}: $val"
+                        done
+                        echo "    }"
+                    fi
+                    val="`cat \"/sys/block/$i/queue/read_ahead_kb\"`"
+                    echo "  I/O read ahead size: $val KB"
+                    val="`cat \"/sys/block/$i/queue/iostats\"`"
+                    echo "  I/O iostat: $val"
+                    val="`cat \"/sys/block/$i/queue/rq_affinity\"`"
+                    echo "  I/O rq affinity: $val"
+                    val="`cat \"/sys/block/$i/queue/nomerges\"`"
+                    echo "  I/O nomerges: $val"
+                    val="`cat \"/sys/block/$i/queue/nr_requests\"`"
+                    echo "  I/O nr requests: $val"
+                    break
+                fi
+            done
+        fi
+        
+    else
+        return 1
+    fi
+}
+
+function reduceVmJitter()
+{
+    if [ $# -eq 2 ]; then
+        local flag="$1"
+        local printStatus="$2"
+
+        if [ $flag -gt 0 ]; then
+        
+            echo '0' >"/proc/sys/vm/swappiness"
+            if [ -w "/proc/sys/vm/direct_swappiness" ]; then
+                echo '0' >"/proc/sys/vm/direct_swappiness"
+            fi
+            echo '84' >"/proc/sys/vm/dirty_ratio"
+            if [ -w "/proc/sys/vm/dirty_background_ratio" ]; then
+                echo '97' >"/proc/sys/vm/dirty_background_ratio"
+            elif [ -w "/proc/sys/vm/dirty_background_ratio_nosys" ]; then
+                echo '97' >"/proc/sys/vm/dirty_background_ratio_nosys"
+            fi
+            if [ -w "/proc/sys/vm/dirty_expire_centisecs" ]; then
+                echo '1201001' >"/proc/sys/vm/dirty_expire_centisecs"
+            elif [ -w "/proc/sys/vm/dirty_expire_centisecs_nosys" ]; then
+                echo '1201001' >"/proc/sys/vm/dirty_expire_centisecs_nosys"
+            fi
+            echo '221001' >"/proc/sys/vm/dirty_writeback_centisecs"
+            echo '1' >"/proc/sys/vm/laptop_mode"
+            if [ -w "/proc/sys/vm/swap_ratio" ]; then
+                echo '0' >"/proc/sys/vm/swap_ratio"
+            fi
+            if [ -w "/proc/sys/vm/swap_ratio_enable" ]; then
+                echo '1' >"/proc/sys/vm/swap_ratio_enable"
+            fi
+            
+        elif [ $flag -lt 0 ]; then
+        
+             if [ -e "/dev/block/zram0" ]; then
+                echo '100' >"/proc/sys/vm/swappiness"
+            else
+                echo '60' >"/proc/sys/vm/swappiness"
+            fi
+            if [ -w "/proc/sys/vm/direct_swappiness" ]; then
+                echo '60' >"/proc/sys/vm/direct_swappiness"
+            fi
+            echo '20' >"/proc/sys/vm/dirty_ratio"
+            if [ -w "/proc/sys/vm/dirty_background_ratio" ]; then
+                echo '5' >"/proc/sys/vm/dirty_background_ratio"
+            elif [ -w "/proc/sys/vm/dirty_background_ratio_nosys" ]; then
+                echo '10' >"/proc/sys/vm/dirty_background_ratio_nosys"
+            fi
+            if [ -w "/proc/sys/vm/dirty_expire_centisecs" ]; then
+                echo '200' >"/proc/sys/vm/dirty_expire_centisecs"
+                echo '500' >"/proc/sys/vm/dirty_writeback_centisecs"
+            elif [ -w "/proc/sys/vm/dirty_expire_centisecs_nosys" ]; then
+                echo '3000' >"/proc/sys/vm/dirty_expire_centisecs_nosys"
+                echo '0' >"/proc/sys/vm/dirty_writeback_centisecs"
+            fi
+            echo '0' >"/proc/sys/vm/laptop_mode"
+            if [ -w "/proc/sys/vm/swap_ratio" ]; then
+                echo '100' >"/proc/sys/vm/swap_ratio"
+            fi
+            if [ -w "/proc/sys/vm/swap_ratio_enable" ]; then
+                echo '0' >"/proc/sys/vm/swap_ratio_enable"
+            fi
+            
+        fi
+        
+        if [ $printStatus -gt 0 ]; then
+            # I don't know the reason, but "read val <'/proc/sys/vm/swappiness'", etc. cannot get its whole value (only first one character)
+            local val
+            val="`cat /proc/sys/vm/swappiness`"
+            if [ -n "$val" ]; then
+                echo "  VM swappiness: $val"
+            fi
+            if [ -r "/proc/sys/vm/direct_swappiness" ]; then
+                val="`cat /proc/sys/vm/direct_swappiness`"
+                if [ -n "$val" ]; then
+                    echo "  VM direct_swappiness: $val"
+                fi
+            fi
+            val="`cat /proc/sys/vm/dirty_ratio`"
+            if [ -n "$val" ]; then
+                echo "  VM dirty ratio: $val"
+            fi
+            if [ -r "/proc/sys/vm/dirty_background_ratio" ]; then
+                val="`cat /proc/sys/vm/dirty_background_ratio`"
+                if [ -n "$val" ]; then
+                    echo "  VM dirty background ratio: $val"
+                fi
+            elif [ -r "/proc/sys/vm/dirty_background_ratio_nosys" ]; then
+                val="`cat /proc/sys/vm/dirty_background_ratio_nosys`"
+                if [ -n "$val" ]; then
+                    echo "  VM dirty background ratio (nosys): $val"
+                fi
+            fi
+            if [ -r "/proc/sys/vm/dirty_expire_centisecs" ]; then
+                val="`cat /proc/sys/vm/dirty_expire_centisecs`"
+                if [ -n "$val" ]; then
+                    echo "  VM dirty expire centisecs: $val"
+                fi
+            elif [ -r "/proc/sys/vm/dirty_expire_centisecs_nosys" ]; then
+                val="`cat /proc/sys/vm/dirty_expire_centisecs_nosys`"
+                if [ -n "$val" ]; then
+                    echo "  VM dirty expire centisecs (nosys): $val"
+                fi
+            fi
+            val="`cat /proc/sys/vm/dirty_writeback_centisecs`"
+            if [ -n "$val" ]; then
+                echo "  VM dirty writeback centisecs: $val"
+            fi
+            val="`cat /proc/sys/vm/laptop_mode`"
+            if [ "$val" = "1" ]; then
+                echo "  VM laptop mode: on"
+            else
+                echo "  VM laptop mode: off"
+            fi
+            if [ -r "/proc/sys/vm/swap_ratio" ]; then
+                val="`cat /proc/sys/vm/swap_ratio`"
+                if [ -n "$val" ]; then
+                    echo "  VM swap_ratio: $val"
+                fi
+            fi
+            if [ -r "/proc/sys/vm/swap_ratio_enable" ]; then
+                val="`cat /proc/sys/vm/swap_ratio_enable`"
+                if [ -n "$val" ]; then
+                    echo "  VM swap_ratio_enable: $val"
+                fi
+            fi
+            # End of print status
+        fi
+        
+    else
+        return 1
+    fi
+}
+
+function reloadAudioserver()
+{
+    # wait for system boot completion and audiosever boot up
+    local i
+    for i in `seq 1 3` ; do
+        if [ "`getprop sys.boot_completed`" = "1"  -a  -n "`getprop init.svc.audioserver`" ]; then
+            break
+        fi
+        sleep 0.9
+    done
+
+    if [ -n "`getprop init.svc.audioserver`" ]; then
+
+        setprop ctl.restart audioserver
+        sleep 0.2
+        if [ "`getprop init.svc.audioserver`" != "running" ]; then
+            # workaround for Android 12 old devices hanging up the audioserver after "setprop ctl.restart audioserver" is executed
+            local pid="`getprop init.svc_debug_pid.audioserver`"
+            if [ -n "$pid" ]; then
+                kill -HUP $pid 1>"/dev/null" 2>&1
+            fi
+            for i in `seq 1 10` ; do
+                sleep 0.2
+                if [ "`getprop init.svc.audioserver`" = "running" ]; then
+                    break
+                elif [ $i -eq 10 ]; then
+                    echo "audioserver reload failed!" 1>&2
+                    return 1
+                fi
+            done
+        fi
+        return 0
+        
+    else
+        echo "audioserver is not found!" 1>&2 
+        return 1
+    fi
+}
+
+function which_resetprop_command()
+{
+    type resetprop 1>"/dev/null" 2>&1
+    if [ $? -eq 0 ]; then
+        echo "resetprop"
+    else
+        type resetprop_phh 1>"/dev/null" 2>&1
+        if [ $? -eq 0 ]; then
+            echo "resetprop_phh"
+        else
+            return 1
+        fi
+    fi
+    return 0
+}
+
+function reduceEffectJitter()
+{
+    if [ $# -eq 2 ]; then
+        local flag="$1"
+        local printStatus="$2"
+
+        if [ $flag -gt 0 ]; then
+            resetprop_command="`which_resetprop_command`"
+            if [ -n "$resetprop_command" ]; then
+                "$resetprop_command" ro.audio.ignore_effects true
+                reloadAudioserver
+            else
+                return 2
+            fi
+        elif [ $flag -lt 0 ]; then
+            resetprop_command="`which_resetprop_command`"
+            if [ -n "$resetprop_command" ]; then
+                "$resetprop_command" --delete ro.audio.ignore_effects
+                reloadAudioserver
+            else
+                return 2
+            fi
+        fi
+        
+        if [ $printStatus -gt 0 ]; then
+            local val="`getprop ro.audio.ignore_effects`"
+            if [ -n "$val"  -a  "$val" = "true" ]; then
+                echo "  Effects framework: disabled"
+            else
+                echo "  Effects framework: enabled"
+            fi
+        fi
+        
+        return 0
+        
+    else
+        return 1
+    fi
+}
+
+function restartWifi()
+{
+    local val="`settings get global wifi_on`"
+    
+    if [ -n "$val"  -a  "$val" != "0" ]; then
+        svc wifi disable
+        svc wifi enable
+    fi
+}
+
+function reduceWifiJitter ()
+{
+    if [ $# -eq 3 ]; then
+        local flag="$1"
+        local restartFlag="$2"
+        local printStatus="$3"
+
+        if [ $flag -gt 0 ]; then
+        
+            # Reducing wifi jitter by suspend wifi optimizations
+            settings put global wifi_suspend_optimizations_enabled 0 1>"/dev/null" 2>&1
+            if [ "$restartFlag" = "Restart" ]; then
+                restartWifi
+            fi
+            
+        elif [ $flag -lt 0 ]; then
+        
+            # Revert wifi jitter by suspend wifi optimizations
+            settings delete global wifi_suspend_optimizations_enabled 1>"/dev/null" 2>&1
+            if [ "$restartFlag" = "Restart" ]; then
+                restartWifi
+            fi
+        
+        fi
+        
+        if [ $printStatus -gt 0 ]; then
+            local val="`settings get global wifi_suspend_optimizations_enabled`"
+            if [ -n "$val"  -a  "$val" = "0" ]; then
+                echo "  Wifi suspend optimizations: disabled"
+            else
+                echo "  Wifi suspend optimizations: enabled"
+            fi
+        fi
+
+    else
+        return 1
+    fi
+}

@@ -8,7 +8,19 @@ MODDIR=${0%/*}
 # MAGISKPATH=$(magisk --path)
 # MAGISKTMP=$MAGISKPATH/.magisk
 
-. "$MODDIR/functions.sh"
+function enableAdaptiveFeatures()
+{
+    # Enable adaptive fearure for battery savers
+    settings delete global adaptive_battery_management_enabled
+    settings delete secure adaptive_connectivity_enabled
+    settings delete global wifi_suspend_optimizations_enabled
+}
+
+function unsetVolumeMediaSteps()
+{
+    # Delete volume media steps key
+    settings delete system volume_steps_music
+}
 
 #
 
