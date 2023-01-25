@@ -14,17 +14,19 @@ MODDIR=${0%/*}
 
 #
 
-# Disable thermal control, Camera service (interfering in jitters on audio outputs), Selinux enforcing, Doze (battery optimizations)
-# and Logd service or not, respectively ("yes" or "no").
-# If DisableSelinuxEnforcing="yes", the USB HAL driver (not hardware offloading driver) only on Android 12 and later except MTK SoC devices
-# cannot set the best USB transfer period specified by "ro.audio.usb.period_us" property because of its SELinux rule.
+# 1. Disable thermal control, Camera service (interfering in jitters on audio outputs), Selinux enforcing, Doze (battery optimizations)
+#     and Logd service or not, respectively ("yes" or "no").
+# 2. Disable clearest tone ("yes" or "no"), perhaps for sensitive Bluetooth earphones.
 
-DisableThermalControl="yes"
-DisableCameraService="yes"
-DisableSelinuxEnforcing="yes"
-DisableDoze="yes"
-DisableLogdService="yes"
+DisableThermalControl="no"
+DisableCameraService="no"
+DisableSelinuxEnforcing="no"
+DisableDoze="no"
+DisableLogdService="no"
+
+DisableClearestTone="no"
 
 # sleep 30 secs needed for "settings" commans to become effective and another kernel tunables setting process completion in an orphan process
 
-(((sleep 30; optimizeOS $DisableThermalControl $DisableCameraService $DisableSelinuxEnforcing $DisableDoze $DisableLogdService)  0<&- &>"/dev/null" &) &)
+(((sleep 30; remountFile; optimizeOS $DisableThermalControl $DisableCameraService $DisableSelinuxEnforcing \
+                        $DisableDoze $DisableLogdService $DisableClearestTone)  0<&- &>"/dev/null" &) &)

@@ -1,6 +1,6 @@
 id=hifi-maximizer-mod
 name=Hifi Maximizer
-version=v2.3.0
-versionCode=2300
+version=v2.3.1
+versionCode=2301
 author=zyhk
 description=A module for maximizing the digital audio fidelity by reducing jitters on audio outputs (USB DACs, Bluetooth a2dp, DLNA, etc.)

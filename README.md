@@ -61,7 +61,10 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
 
 * Tips: If you use "AirMusic" to transmit audio data, I recommend setting around 4589 msec additional delay to reduce jitter distortion on the AirMusic panel to display target device(s).
 
-* Note: Please remember that this module will stop the thermal control (including CPU core controls, CPU hotplugs and thermal services), the "logd server" and the "camera server" (interfering jitter on audio outputs), disable SELinux enforcing mode and doze (battery saver while idling) on your device. If you like to disable these features, modify variables in "service.sh", respectively.
+* Note1: Please remember that this module will stop the thermal control (including CPU core controls, CPU hotplugs and thermal services), the "logd server" and the "camera server" (interfering jitter on audio outputs), disable SELinux enforcing mode and doze (battery saver while idling) on your device. If you like to disable these features, modify variables in "service.sh", respectively.
+
+* Note2: If you prefer (too sensitive?) Bluetooth earphones to wired headphones and DLNA rederers, set "DisableClearestTone" variable to be "yes" in "service.sh".
+
 <br/>
 
 ## DISCLAIMER

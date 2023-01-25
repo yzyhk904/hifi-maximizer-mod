@@ -484,13 +484,23 @@ function reduceGovernorJitter()
                     fi
                 done
             fi
+
+            # Support for the Nyx kernel and others; Disable a workqueue power efficient featute
+            if [ -e "/sys/module/workqueue/parameters/power_efficient" ]; then
+                chmod 644 "/sys/module/workqueue/parameters/power_efficient"
+                echo 'N' >"/sys/module/workqueue/parameters/power_efficient"
+            fi
+
             # GPU's
             if [ -w "/sys/class/kgsl/kgsl-3d0/pwrscale/trustzone/governor" ]; then
                 # For old Qcomm GPU's
                 echo 'performance' >"/sys/class/kgsl/kgsl-3d0/pwrscale/trustzone/governor"
                 if [ -w "/sys/class/kgsl/kgsl-3d0/min_pwrlevel" ]; then
                     # Set the min power level to be maximum
-                    echo "0" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                    read x <"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                    if [ "$x" -ne 0 ]; then
+                        echo "0" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                    fi
                 fi
             elif [ -w "/sys/class/kgsl/kgsl-3d0/devfreq/governor" ]; then
                 # For Qcomm GPU's
@@ -498,11 +508,15 @@ function reduceGovernorJitter()
                 sleep 0.1
                 if [ -w "/sys/class/kgsl/kgsl-3d0/min_pwrlevel" ]; then
                     # Set the min power level to be maximum
-                    echo "0" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                    read x <"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                    if [ "$x" -ne 0 ]; then
+                        echo "0" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                    fi
                 fi
                 # For some Qcomm GPU's, because they revert the governor after setting min_pwrlevel several times
-                for i in `seq 1 5`; do
-                    sleep 0.${i}
+                for i in `seq 1 10`; do
+                    x="`echo \"scale=1;${i}/10\" | bc`"
+                    sleep $x
                     read x <"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
                     if [ "$x" = "performance" ]; then
                         break
@@ -518,7 +532,8 @@ function reduceGovernorJitter()
             fi
             
         elif [ $flag -lt 0 ]; then
-        
+
+            # CPU's governor
             local gov="`searchDefaultCpuGovernor`"
             # prevent CPU offline stuck by forcing online between double  governor writing
             local i st en
@@ -534,36 +549,57 @@ function reduceGovernorJitter()
                     fi
                 done
             fi
+            
+            # Support for the Nyx kernel and others; Revert a workqueue power efficient featute
+            if [ -e "/sys/module/workqueue/parameters/power_efficient" ]; then
+                chmod 644 "/sys/module/workqueue/parameters/power_efficient"
+                echo 'Y' >"/sys/module/workqueue/parameters/power_efficient"
+            fi
 
+            # GPU's
             if [ -w "/sys/class/kgsl/kgsl-3d0/pwrscale/trustzone/governor" ]; then
                 # Default GPU governor for old Qcomm GPU's
                 echo 'ondemand' >"/sys/class/kgsl/kgsl-3d0/pwrscale/trustzone/governor"
                 if [ -r "/sys/class/kgsl/kgsl-3d0/num_pwrlevels"  -a  -w "/sys/class/kgsl/kgsl-3d0/min_pwrlevel" ]; then
                     # Set the min power level to be minimum
                     local x="4"
+                    local tmp
                     read x <"/sys/class/kgsl/kgsl-3d0/num_pwrlevels"
                     x="`expr $x - 1`"
                     if [ -n "$x" ]; then
-                        echo "$x" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                        read tmp <"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                        if [ "$tmp" -ne "$x" ]; then
+                            echo "$x" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                        fi
                     fi
                 fi
             elif [ -w "/sys/class/kgsl/kgsl-3d0/devfreq/governor" ]; then
                 # Default GPU governor for Qcomm GPU's
                 echo 'msm-adreno-tz' >"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
+                sleep 0.1
                 if [ -r "/sys/class/kgsl/kgsl-3d0/num_pwrlevels"  -a  -w "/sys/class/kgsl/kgsl-3d0/min_pwrlevel" ]; then
                     # Set the min power level to be minimum
                     local x="6"
+                    local tmp
                     read x <"/sys/class/kgsl/kgsl-3d0/num_pwrlevels"
                     x="`expr $x - 1`"
                     if [ -n "$x" ]; then
-                        echo "$x" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                        read tmp <"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                        if [ "$tmp" -ne "$x" ]; then
+                            echo "$x" >"/sys/class/kgsl/kgsl-3d0/min_pwrlevel"
+                        fi
                     fi
                 fi
-                # For some Qcomm GPU's, because they revert the governor after setting min_pwrlevel
-                echo 'msm-adreno-tz' >"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
-                # For a certain Kernel, because it is not effective only once
-                sleep 0.1
-                echo 'msm-adreno-tz' >"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
+                # For some Qcomm GPU's, because they revert the governor after setting min_pwrlevel several times
+                for i in `seq 1 10`; do
+                    x="`echo \"scale=1;${i}/10\" | bc`"
+                    sleep $x
+                    read x <"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
+                    if [ "$x" = "msm-adreno-tz" ]; then
+                        break
+                    fi
+                    echo 'msm-adreno-tz' >"/sys/class/kgsl/kgsl-3d0/devfreq/governor"
+                done
             elif [ -w "/proc/gpufreq/gpufreq_opp_freq" ]; then
                 # Variable frequency setting for MediaTek GPU's
                 echo '0' >"/proc/gpufreq/gpufreq_opp_freq"
@@ -574,7 +610,19 @@ function reduceGovernorJitter()
         if [ $printStatus -gt 0 ]; then
             #CPU Governor
             if [ -r "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor" ]; then
-                echo "  Governor CPU: `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`"
+                # Support for the Nyx kernel and others; Print the status of a workqueue power efficient featute
+                if [ -r "/sys/module/workqueue/parameters/power_efficient" ]; then
+                    local pf
+                    read pf <"/sys/module/workqueue/parameters/power_efficient"
+                    if [ "$pf" = "Y" ]; then
+                        pf="yes"
+                    else
+                        pf="no"
+                    fi
+                    echo "  Governor CPU: `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor` (wq psave: $pf)"
+                else
+                    echo "  Governor CPU: `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`"
+                fi
             fi
             
             if [ -r "/sys/class/kgsl/kgsl-3d0/pwrscale/trustzone/governor" ]; then
@@ -892,7 +940,7 @@ function getSocModelName()
 {
     local modelName="`getprop ro.board.platform`"
     case "$modelName" in
-            sd* | msm* | exynos* | mt* )
+            sd* | msm* | exynos* | mt* | gs* )
                 echo "$modelName"
                 return 0
                 ;;
@@ -932,8 +980,8 @@ function adjustForSoC()
         local kername="`uname -r`"
         kername=${kername##*-}
         if [ "$kername" = "Nyx"  -a  "`getprop ro.system.build.version.release`" -ge "13" ]; then
-            # Round off (<7) for the Nyx kernel & A13 or later
-            echo "`expr  '(' '(' $1 + 3 ')' / 10 ')' '*' 10`"
+            # Round off (<5) for the Nyx kernel & A13 or later
+            echo "`expr  '(' '(' $1 + 5 ')' / 10 ')' '*' 10`"
             return 0
         fi
         
@@ -1032,13 +1080,13 @@ function getSchedulerValues()
                     "m-light" )
                         case "`getSocModelName`" in
                             sdm8[5-9]* | sdm9* )
-                                echo "78 0 32 504 0"
+                                echo "49 0 24 492 0"
                                 ;;
                             sdm8* )
-                                echo "49 0 24 500 0"
+                                echo "49 0 24 492 0"
                                 ;;
-                            sdm* | msm* | sd* | exynos* )
-                                echo "49 0 24 500 0"
+                            sdm* | msm* | sd* | exynos* | gs* )
+                                echo "49 0 24 492 0"
                                 ;;
                             mt68* )
                                 echo "52 0 24 500 0"
@@ -1054,35 +1102,35 @@ function getSchedulerValues()
                     "boost" )
                         case "`getSocModelName`" in
                             sdm8[5-9]* | sdm9* )
-                                echo "75 0 32 500 0"
+                                echo "76 0 32 500 0"
                                 ;;
                             sdm8* )
-                                echo "75 0 34 500 0"
+                                echo "76 0 34 500 0"
                                 ;;
-                            sdm* | msm* | sd* | exynos* )
-                                echo "75 0 34 500 0"
+                            sdm* | msm* | sd* | exynos* | gs* )
+                                echo "75 0 35 500 0"
                                 ;;
                             mt68* )
-                                echo "68 0 32 504 0"
+                                echo "76 0 36 500 0"
                                 ;;
                             mt67[7-9]? )
-                                echo "68 0 32 504 0"
+                                echo "76 0 36 500 0"
                                 ;;
                             * )
-                                echo "68 0 32 504 0"
+                                echo "76 0 36 500 0"
                                 ;;
                         esac
                         ;;
                     "medium" | *)
                         case "`getSocModelName`" in
                             sdm8[5-9]* | sdm9* )
-                                echo "75 0 32 500 0"
+                                echo "71 0 28 496 0"
                                 ;;
                             sdm8* )
-                                echo "74 0 34 504 0"
+                                echo "73 0 24 484 0"
                                 ;;
-                            sdm* | msm* | sd* | exynos* )
-                                echo "74 0 34 504 0"
+                            sdm* | msm* | sd* | exynos* | gs* )
+                                echo "73 0 24 484 0"
                                 ;;
                             mt68* )
                                 echo "64 0 32 504 0"
@@ -1109,10 +1157,24 @@ function getSchedulerValues()
                         echo "1 3 3 0 1 1 3 26 0 3 3"
                         ;;
                     "boost" )
-                        echo "1 3 3 0 1 1 3 34 0 3 3"
+                        case "`getSocModelName`" in
+                            sdm* | mt68* | gs* )
+                                echo "1 3 3 0 1 1 3 46 0 3 3"
+                                ;;
+                            * )
+                                echo "1 3 3 0 1 1 3 34 0 3 3"
+                                ;;
+                        esac
                         ;;
                     "medium" | * )
-                        echo "1 3 3 0 1 1 3 29 0 3 3"
+                        case "`getSocModelName`" in
+                            sdm* | mt68* | gs* )
+                                echo "1 3 3 0 1 1 3 34 0 3 3"
+                                ;;
+                            * )
+                                echo "1 3 3 0 1 1 3 29 0 3 3"
+                                ;;
+                        esac
                         ;;
                 esac
                 ;;
@@ -1148,7 +1210,7 @@ function getSchedulerNrRequests()
                             sdm8* )
                                 echo "80000"
                                 ;;
-                            sdm* | msm* | sd* | exynos* )
+                            sdm* | msm* | sd* | exynos* | gs* )
                                 echo "81660"
                                 ;;
                             * )
@@ -1164,7 +1226,7 @@ function getSchedulerNrRequests()
                             sdm8* )
                                 echo "83965"
                                 ;;
-                            sdm* | msm* | sd* | exynos* )
+                            sdm* | msm* | sd* | exynos* | gs* )
                                 echo "82861"
                                 ;;
                             mt68* )
@@ -1184,31 +1246,31 @@ function getSchedulerNrRequests()
                                 echo "86117"
                                 ;;
                             sdm8* )
-                                echo "86110"
+                                echo "86113"
                                 ;;
-                            sdm* | msm* | sd* | exynos* )
+                            sdm* | msm* | sd* | exynos* | gs* )
                                 echo "86110"
                                 ;;
                             mt68* )
-                                echo "86120"
+                                echo "86123"
                                 ;;
                             mt67[7-9]? )
-                                echo "86120"
+                                echo "86123"
                                 ;;
                             * )
-                                echo "86120"
+                                echo "86123"
                                 ;;
                         esac
                         ;;
                     "medium" | * )
                         case "`getSocModelName`" in
                             sdm8[5-9]* | sdm9* )
-                                echo "86116"
+                                echo "86021"
                                 ;;
                             sdm8* )
-                                echo "85951"
+                                echo "85969"
                                 ;;
-                            sdm* | msm* | sd* | exynos* )
+                            sdm* | msm* | sd* | exynos* | gs* )
                                 echo "85951"
                                 ;;
                             mt68* )
@@ -1229,7 +1291,7 @@ function getSchedulerNrRequests()
                 case "$2" in
                     "light" )
                         case "`getSocModelName`" in
-                            sdm* | msm* | sd* | exynos* )
+                            sdm* | msm* | sd* | exynos* | gs* )
                                 echo "14540"
                                 ;;
                             * )
@@ -1239,7 +1301,7 @@ function getSchedulerNrRequests()
                         ;;
                     "m-light" )
                         case "`getSocModelName`" in
-                            sdm* | msm* | sd* | exynos* )
+                            sdm* | msm* | sd* | exynos* | gs* )
                                 echo "31170"
                                 ;;
                             * )
@@ -1249,8 +1311,8 @@ function getSchedulerNrRequests()
                         ;;
                     "boost" )
                         case "`getSocModelName`" in
-                            sdm* | msm* | sd* | exynos* )
-                                echo "83587"
+                            sdm* | msm* | sd* | exynos* | gs* )
+                                echo "86113"
                                 ;;
                             * )
                                 echo "83587"
@@ -1259,8 +1321,8 @@ function getSchedulerNrRequests()
                         ;;
                     "medium" | * )
                         case "`getSocModelName`" in
-                            sdm* | msm* | sd* | exynos* )
-                                echo "81940"
+                            sdm* | msm* | sd* | exynos* | gs* )
+                                echo "85951"
                                 ;;
                             * )
                                 echo "82200"
@@ -1271,14 +1333,14 @@ function getSchedulerNrRequests()
                 ;;
                 
             "kyber" )
-                echo "2048"
+                echo "2043"
                 ;;
             
             "noop" | "none" | * )
                 case "$2" in
                     "light" )
                         case "`getSocModelName`" in
-                            sdm* | msm* | sd* | exynos* )
+                            sdm* | msm* | sd* | exynos* | gs* )
                                 echo "80645"
                                 ;;
                             * )
@@ -1288,7 +1350,7 @@ function getSchedulerNrRequests()
                         ;;
                     "m-light" )
                         case "`getSocModelName`" in
-                            sdm* | msm* | sd* | exynos* )
+                            sdm* | msm* | sd* | exynos* | gs* )
                                 echo "83853"
                                 ;;
                             * )
@@ -1298,7 +1360,7 @@ function getSchedulerNrRequests()
                         ;;
                     "boost" )
                         case "`getSocModelName`" in
-                            sdm* | msm* | sd* | exynos* )
+                            sdm* | msm* | sd* | exynos* | gs* )
                                 echo "86094"
                                 ;;
                             * )
@@ -1308,7 +1370,7 @@ function getSchedulerNrRequests()
                         ;;
                     "medium" | * )
                         case "`getSocModelName`" in
-                            sdm* | msm* | sd* | exynos* )
+                            sdm* | msm* | sd* | exynos* | gs* )
                                 echo "86055"
                                 ;;
                             * )
@@ -1351,7 +1413,7 @@ function reduceIoJitter()
                         vals="`getSchedulerValues \"$sched\" \"$toneMode\"`"
                         nr_requests="`getSchedulerNrRequests \"$sched\" \"$toneMode\"`"
                         echo "$sched" >"/sys/block/$i/queue/scheduler"
-                        echo '16384' >"/sys/block/$i/queue/read_ahead_kb"
+                        echo '16400' >"/sys/block/$i/queue/read_ahead_kb"
                         echo '0' >"/sys/block/$i/queue/iostats"
                         echo '0' >"/sys/block/$i/queue/add_random"
                         echo '2' >"/sys/block/$i/queue/rq_affinity"
@@ -1361,8 +1423,8 @@ function reduceIoJitter()
                         sleep 0.05
                         read v <"/sys/block/$i/queue/nr_requests"
                         if [ "$nr_requests" -ne "$v" ]; then
-                            # If exceeding its max value, then use a safe Nyx kenel value 2048 (except its "none" scheduler)
-                            echo "2048" >"/sys/block/$i/queue/nr_requests"
+                            # If exceeding its max value, then use a safe (Nyx only?) kenel value within 2048 (except its "none" scheduler)
+                            echo "2043" >"/sys/block/$i/queue/nr_requests"
                         fi
                         j=1
                         for p in $params; do
@@ -1710,6 +1772,7 @@ function reduceWifiJitter ()
         
             # Reducing wifi jitter by suspend wifi optimizations
             settings put global wifi_suspend_optimizations_enabled 0 1>"/dev/null" 2>&1
+            settings put secure adaptive_connectivity_enabled 0 1>"/dev/null" 2>&1
             if [ "$restartFlag" = "Restart" ]; then
                 restartWifi
             fi
@@ -1718,6 +1781,7 @@ function reduceWifiJitter ()
         
             # Revert wifi jitter by suspend wifi optimizations
             settings delete global wifi_suspend_optimizations_enabled 1>"/dev/null" 2>&1
+            settings delete secure adaptive_connectivity_enabled 1>"/dev/null" 2>&1
             if [ "$restartFlag" = "Restart" ]; then
                 restartWifi
             fi
@@ -1730,6 +1794,12 @@ function reduceWifiJitter ()
                 echo "  Wifi suspend optimizations: disabled"
             else
                 echo "  Wifi suspend optimizations: enabled"
+            fi
+            val="`settings get secure adaptive_connectivity_enabled`"
+            if [ -n "$val"  -a  "$val" = "0" ]; then
+                echo "  Wifi adaptive connectivity (if >A11): disabled"
+            else
+                echo "  Wifi adaptive connectivity (if >A11): enabled"
             fi
         fi
 
