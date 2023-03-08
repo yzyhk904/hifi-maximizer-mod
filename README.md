@@ -24,6 +24,8 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
         disable wifi suspend optimizations, the adaptive battery management and the adaptive connectivity management.</li>
     <li>Kill effect chains<br>
         force ignoring `/vendor/etc/audio_effects.xml` to disable equalizers, virtualizers, reverb's, visualizer, echo cancelers, automatic gain controls, etc.</li>
+    <li>Disable the android built-in spatial audio feature (A13 or higher; especially Tensor devices)<br>
+         bypass an otiose audio pass.</li>
     <li>Disable Logd service<br>
         disable "logd server", "traced server" and "traced_probes server" interfering jitter on audio outputs.</li>
     <li>Disable camera service<br>
