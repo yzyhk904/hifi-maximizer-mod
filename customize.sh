@@ -7,6 +7,14 @@ REPLACE="
 /system/vendor/etc/r_submix_audio_policy_configuration.xml
 "
 
+for i in $REPLACE; do
+    if [ -r "$i" ]; then
+        chmod 644 "${MODPATH}${i}"
+        chcon u:object_r:vendor_configs_file:s0 "${MODPATH}${i}"
+        chown root:root "${MODPATH}${i}"
+    fi
+done
+
 # If detecting DRC-enabled, then make a DRC-less config file and overlay
 #
 # Set the active configuration file name retrieved from the audio policy server
@@ -31,6 +39,8 @@ case "$configXML" in
             mirrorConfigXML="`getActualConfigXML \"${mirrorConfigXML}\"`"
             stopDRC "$mirrorConfigXML" "$modConfigXML"
             chmod 644 "$modConfigXML"
+            chcon u:object_r:vendor_configs_file:s0 "$modConfigXML"
+            chown root:root "$modConfigXML"
             chmod -R a+rX "$MODPATH/system/vendor/etc"
             REPLACE="/system${configXML} $REPLACE"
         fi
@@ -39,8 +49,12 @@ case "$configXML" in
         ;;
 esac
 
+# making patched ALSA utility libraries for "ro.audio.usb.period_us"
 makeLibraries
+# removing post-A13 (especially Tensor's) spatial audio flags in an audio configuration file for avoiding errors
 deSpatializeAudioPolicyConfig "/vendor/etc/bluetooth_audio_policy_configuration_7_0.xml"
+# disabling pre-installed Moto Dolby faetures for reducing very large jitter caused by them
+disableMotoDolby
 
 if "$IS64BIT"; then
     board="`getprop ro.board.platform`"

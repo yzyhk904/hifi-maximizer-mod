@@ -24,11 +24,13 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
         disable wifi suspend optimizations, the adaptive battery management and the adaptive connectivity management.</li>
     <li>Kill effect chains<br>
         force ignoring `/vendor/etc/audio_effects.xml` to disable equalizers, virtualizers, reverb's, visualizer, echo cancelers, automatic gain controls, etc.</li>
-    <li>Disable the android built-in spatial audio feature (A13 or higher; especially Tensor devices)<br>
+    <li>Disable the android built-in spatial audio feature (A13 or higher; especially Tensor devices)<br/>
          bypass an otiose audio pass.</li>
-    <li>Disable Logd service<br>
+    <li>Disable pre-installed Moto Dolby features<br/>
+        hide their apps (no modifications).</li>
+    <li>Disable Logd service<br/>
         disable "logd server", "traced server" and "traced_probes server" interfering jitter on audio outputs.</li>
-    <li>Disable camera service<br>
+    <li>Disable camera service<br/>
         disable "camera server" interfering jitter on audio outputs.</li>
     </ol>
 <br/>
@@ -72,33 +74,5 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
 ## DISCLAIMER
 
 * I am not responsible for any damage that may occur to your device, so it is your own choice to attempt this module.
-
-## Change logs
-
-# v1.0
-* Initial Release
-
-# v1.1
-* Stopped the EAS+ scheduling feature for MediaTek CPUs
-
-# v1.2
-* Stopped camera servers interfering in jitters on audio outputs, and reformatted source codes
-
-# v1.3
-* Realme support (/proc/sys/vm/direct_swappiness)
-
-# v1.4
-* Moved scattered functions into "functions.sh" together, and treated IO Schedulers more rigorously
-
-# v2.0
-* Supported audio policy configuration XML files for "disable a2dp offload", "force-disable a2dp offload", and so on
-# v2.1
-* The GPU frequency became to be fixed really at the max frequency for Qualcomm Soc and MediaTek SoC
-
-# v2.2
-* Set new properties related to an audio scheduling
-
-# v2.3
-* Restructured source codes to be sharable with the jitter-reducer.sh in USB_SampleRate_Changer
 
 ##
