@@ -1,5 +1,8 @@
 ## Change logs
 
+# v2.4.1
+* Added support for ColorOS (experimental)
+
 # v2.4.0
 * Fixed some SELinux related bugs for Magisk v26.0's new magic mount feature
 * Diabled pre-installed Moto Dolby features for reducing large jitter caused by them

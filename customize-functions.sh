@@ -36,6 +36,9 @@ function getActualConfigXML()
         elif [ -e "${dir}_qssi"  -a  -r "${dir}_qssi/${fname}" ]; then
             # OnePlus stock pattern
             echo "${dir}_qssi/${fname}"
+        elif [ "${dir##*/}"  = "sku_`getprop ro.board.platform`"  -a  -r "${dir%/*}/${fname}" ]; then
+            # OnePlus stock pattern2
+            echo "${dir%/*}/${fname}"
         elif [ -r "${dir}/audio/${fname}" ]; then
             # Xiaomi stock pattern
             echo "${dir}/audio/${fname}"
@@ -253,29 +256,8 @@ function replaceSystemProps_SDM845()
 
 function replaceSystemProps_SDM()
 {
-    if [ -e "${MODPATH%/*/*}/modules/usb-samplerate-unlocker"  -o  -e "${MODPATH%/*/*}/modules_update/usb-samplerate-unlocker" ]; then
-        sed -i \
-            -e 's/vendor\.audio\.usb\.perio=.*$/vendor\.audio\.usb\.perio=2625/' \
-            -e 's/vendor\.audio\.usb\.out\.period_us=.*$/vendor\.audio\.usb\.out\.period_us=2625/' \
-                "$MODPATH/system.prop"
-        sed -i \
-            -e 's/vendor\.audio\.usb\.perio=.*$/vendor\.audio\.usb\.perio=2625/' \
-            -e 's/vendor\.audio\.usb\.out\.period_us=.*$/vendor\.audio\.usb\.out\.period_us=2625/' \
-                "$MODPATH/system.prop-workaround"
-
-        loosenedMessage 192kHz
-
-    else
-        sed -i \
-            -e 's/vendor\.audio\.usb\.perio=.*$/vendor\.audio\.usb\.perio=2500/' \
-            -e 's/vendor\.audio\.usb\.out\.period_us=.*$/vendor\.audio\.usb\.out\.period_us=2500/' \
-                "$MODPATH/system.prop"
-        sed -i \
-            -e 's/vendor\.audio\.usb\.perio=.*$/vendor\.audio\.usb\.perio=2500/' \
-            -e 's/vendor\.audio\.usb\.out\.period_us=.*$/vendor\.audio\.usb\.out\.period_us=2500/' \
-                "$MODPATH/system.prop-workaround"
-
-    fi
+    # Do nothing even if "usb-samplerate-unlocker" exists
+    :
 }
 
 function replaceSystemProps_MTK_Dimensity()
