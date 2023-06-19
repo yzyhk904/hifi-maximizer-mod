@@ -1,5 +1,13 @@
 ## Change logs
 
+# v2.5.0
+* Optimized for Tensor devices by tuning GPU & I/O scheduling and replacing their stock audio policy configuration
+* Hided preinstalled "Digital Wellbeing" feature for reducing significant jitter (please manually uninstall this if remaining as a usual app)
+
+# v2.4.2
+* Optimized "extras/jitter-reducer.sh" for reducing I/O scheduling jitter
+* "extras/jitter-reducer.sh" now confirms and sets the cpu scaling max freq to its available max (sometimes the scaling max freq has been lowered before by a controller on some devices)
+
 # v2.4.1
 * Added support for ColorOS (experimental)
 

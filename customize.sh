@@ -15,15 +15,15 @@ for i in $REPLACE; do
     fi
 done
 
-# If detecting DRC-enabled, then make a DRC-less config file and overlay
+# If detecting DRC-enabled or Tensor SoC, then make a DRC-less or Tensor specifically tuned config file and overlay
 #
 # Set the active configuration file name retrieved from the audio policy server
 configXML="`getActivePolicyFile`"
 
+# configXML is usually placed under "/vendor/etc" (or "/vendor/etc/audio"), but
+# "/my_product/etc" and "/odm/etc" are used on ColorOS (RealmeUI) and OxygenOS(?)
 case "$configXML" in
-    /vendor/etc/* | /my_product/etc/* | /odm/etc/* )
-        # If DRC enabled, modify audio policy configuration to stopt DRC
-        # /my_product/etc & /odm/etc are for ColorOS (RealmeUI) and OxygenOS(?)
+    /vendor/etc/* | /my_product/etc/* | /odm/etc/* | /system/etc/* | /product/etc/* )
         MAGISKPATH="$(magisk --path)"
         if [ -n "$MAGISKPATH"  -a  -r "$MAGISKPATH/.magisk/mirror${configXML}" ]; then
             # Don't use "$MAGISKPATH/.magisk/mirror/system${configXML}" instead of "$MAGISKPATH/.magisk/mirror${configXML}".
@@ -32,13 +32,45 @@ case "$configXML" in
         else
             mirrorConfigXML="$configXML"
         fi
+        mirrorConfigXML="`getActualConfigXML \"${mirrorConfigXML}\"`"
+        case "${configXML}" in
+            /system/* )
+                configXML="${configXML#/system}"
+            ;;
+        esac
+        modConfigXML="$MODPATH/system${configXML}"
+        
+        # If DRC enabled, modify audio policy configuration to stopt DRC
         grep -e "speaker_drc_enabled[[:space:]]*=[[:space:]]*\"true\"" $mirrorConfigXML >"/dev/null" 2>&1
         if [ "$?" -eq 0 ]; then
-            modConfigXML="$MODPATH/system${configXML}"
+            drcFlag=1
+        else
+            drcFlag=0
+        fi
+        case "`getprop ro.board.platform`" in
+            gs* )
+                tensorFlag=1
+                ;;
+            * )
+                tensorFlag=0
+                ;;
+        esac
+        
+        if [ "$drcFlag" -eq 1  -o  "$tensorFlag" -eq 1 ]; then
             mkdir -p "${modConfigXML%/*}"
             touch "$modConfigXML"
-            mirrorConfigXML="`getActualConfigXML \"${mirrorConfigXML}\"`"
-            stopDRC "$mirrorConfigXML" "$modConfigXML"
+            if [ "$drcFlag" -eq 1 ]; then
+                stopDRC "$mirrorConfigXML" "$modConfigXML"
+            else
+                DRC_enabled="false"
+                USB_module="usbv2"
+                BT_module="bluetooth"
+                sRate="96000"
+                aFormat="AUDIO_FORMAT_PCM_32_BIT"
+                sed -e "s/%DRC_ENABLED%/$DRC_enabled/" -e "s/%USB_MODULE%/$USB_module/" -e "s/%BT_MODULE%/$BT_module/" \
+                    -e "s/%SAMPLING_RATE%/$sRate/" -e "s/%AUDIO_FORMAT%/$aFormat/" \
+                        "$MODPATH/templates/bypass_offload_safer_tensor_template.xml" >"$modConfigXML"
+            fi
             chmod 644 "$modConfigXML"
             chcon u:object_r:vendor_configs_file:s0 "$modConfigXML"
             chown root:root "$modConfigXML"
@@ -52,21 +84,33 @@ esac
 
 # making patched ALSA utility libraries for "ro.audio.usb.period_us"
 makeLibraries
+
 # removing post-A13 (especially Tensor's) spatial audio flags in an audio configuration file for avoiding errors
 deSpatializeAudioPolicyConfig "/vendor/etc/bluetooth_audio_policy_configuration_7_0.xml"
-# disabling pre-installed Moto Dolby faetures for reducing very large jitter caused by them
-disableMotoDolby
+
+# disabling pre-installed Moto Dolby faetures and Wellbeing for reducing very large jitter caused by them
+disablePrivApps "
+/system_ext/priv-app/MotoDolbyDax3
+/system_ext/priv-app/MotorolaSettingsProvider
+/system_ext/priv-app/daxService
+/system_ext/priv-app/DaxUI
+/system_ext/app/MotoSignatureApp
+/product/priv-app/WellbeingPrebuilt
+/product/priv-app/Wellbeing
+/system_ext/priv-app/WellbeingPrebuilt
+/system_ext/priv-app/Wellbeing
+"
 
 if "$IS64BIT"; then
     board="`getprop ro.board.platform`"
     case "$board" in
-        "kona" )
+        "kona" | "kalama" | "shima" | "yupik" )
             replaceSystemProps_Kona
             ;;
-        "sdm845" )
+        "sdm845" | gs* )
             replaceSystemProps_SDM845
             ;;
-        "sdm660" )
+        "sdm660" | "bengal" | "holi" )
             replaceSystemProps_SDM
             ;;
         mt68* )

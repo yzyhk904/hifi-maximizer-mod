@@ -110,7 +110,7 @@ function makeLibraries()
     local d lname
     
     for d in "lib" "lib64"; do
-        for lname in "libalsautils.so" "libalsautilsv2.so"; do
+        for lname in "libalsautils.so" "libalsautilsv2.so" "audio_usb_aoc.so"; do
             if [ -r "${MAGISKPATH}/.magisk/mirror/vendor/${d}/${lname}" ]; then
                 mkdir -p "${MODPATH}/system/vendor/${d}"
                 patchMapProperty "${MAGISKPATH}/.magisk/mirror/vendor/${d}/${lname}" "${MODPATH}/system/vendor/${d}/${lname}"
@@ -319,7 +319,7 @@ function deSpatializeAudioPolicyConfig()
             chmod 644 "$modConfigXML"
             chcon u:object_r:vendor_configs_file:s0 "$modConfigXML"
             chown root:root "$modConfigXML"
-            chmod -R a+rX "$MODPATH/system/vendor/etc"
+            chmod -R a+rX "${modConfigXML%/*}"
             if [ -z "$REPLACE" ]; then
                 REPLACE="/system${configXML}"
             else
@@ -329,19 +329,23 @@ function deSpatializeAudioPolicyConfig()
     fi
 }
 
-function disableMotoDolby()
+function disablePrivApps()
 {
-    local MotoApps="
-/system_ext/priv-app/MotoDolbyDax3
-/system_ext/priv-app/MotorolaSettingsProvider
-/system_ext/priv-app/daxService
-/system_ext/app/MotoSignatureApp
-"
+    if [ $# -ne 1  -o  -z "$1" ]; then
+        return 1
+    fi
+
     local MAGISKPATH="$(magisk --path)"
     local dir mdir
-
-    for dir in $MotoApps; do
+    local PrivApps="$1"
+    
+    for dir in $PrivApps; do
         if [ -d "${MAGISKPATH}/.magisk/mirror${dir}" ]; then
+            case "${dir}" in
+                /system/* )
+                    dir="${dir#/system}"
+                ;;
+            esac
             mdir="${MODPATH}/system${dir}"
             mkdir -p "$mdir"
             chmod a+rx "$mdir"
