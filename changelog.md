@@ -2,7 +2,7 @@
 
 # v2.5.0
 * Optimized for Tensor devices by tuning GPU & I/O scheduling and replacing their stock audio policy configuration
-* Hided preinstalled "Digital Wellbeing" feature for reducing significant jitter (please manually uninstall this if remaining as a usual app)
+* Hid preinstalled "Digital Wellbeing" feature for reducing significant jitter (please uninstall this manually if remaining as a usual app)
 
 # v2.4.2
 * Optimized "extras/jitter-reducer.sh" for reducing I/O scheduling jitter

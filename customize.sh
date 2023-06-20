@@ -144,3 +144,4 @@ else
 fi
 
 rm -f "$MODPATH/customize-functions.sh"
+rm -rf "$MODPATH/templates"
