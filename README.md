@@ -21,11 +21,13 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
     <li>Selinux mode<br>
         change the mode to "permissive".</li>
     <li>Adaptive battery saving features<br>
-        disable wifi suspend optimizations, the adaptive battery management and the adaptive connectivity management.</li>
+        disable wifi suspend optimizations, the adaptive battery management, the adaptive charging management and the adaptive connectivity management.</li>
     <li>Kill effect chains<br>
         force ignoring `/vendor/etc/audio_effects.xml` to disable equalizers, virtualizers, reverb's, visualizer, echo cancelers, automatic gain controls, etc.</li>
     <li>Disable the android built-in spatial audio feature (A13 or higher; especially Tensor devices)<br/>
          bypass an otiose audio pass.</li>
+    <li>Disable aocd service<br/>
+        disable "aocd server" generating significant jitter on audio outputs, esp. on USB.</li>
     <li>Disable pre-installed Moto Dolby and Digital Wellbeing features<br/>
         hide their apps (no modifications); please manually uninstall Digital Wellbeing app if remaining as a usual app.</li>
     <li>Disable Logd service<br/>

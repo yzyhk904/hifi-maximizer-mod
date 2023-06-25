@@ -1,5 +1,9 @@
 ## Change logs
 
+# v2.5.1
+* Stopped Tensor device's AOC daemon for reducing significant jitter
+* Optimized "extras/jitter-reducer.sh" for reducing I/O scheduling jitter on Tensor devices
+
 # v2.5.0
 * Optimized for Tensor devices by tuning GPU & I/O scheduling and replacing their stock audio policy configuration
 * Hid preinstalled "Digital Wellbeing" feature for reducing significant jitter (please uninstall this manually if remaining as a usual app)

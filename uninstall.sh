@@ -12,6 +12,7 @@ function enableAdaptiveFeatures()
 {
     # Enable adaptive fearure for battery savers
     settings delete global adaptive_battery_management_enabled
+    settings delete secure adaptive_charging_enabled
     settings delete secure adaptive_connectivity_enabled
     settings delete global wifi_suspend_optimizations_enabled
 }

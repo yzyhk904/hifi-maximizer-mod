@@ -8,8 +8,9 @@
 
 function disableAdaptiveFeatures()
 {
-    # Reducing jitter by battery draining manager and 5G data manager
+    # Reducing jitter by battery draining and charging manager, and 5G data manager
     settings put global adaptive_battery_management_enabled 0
+    settings put secure adaptive_charging_enabled 0
     settings put secure adaptive_connectivity_enabled 0
     # Reducing wifi jitter by suspend wifi optimizations
     settings put global wifi_suspend_optimizations_enabled 0
@@ -29,7 +30,13 @@ function forceIgnoreAudioEffects()
         resetprop ro.audio.ignore_effects true
         force_restart_server=1
     fi
-        
+    
+    # Stop Tensor device's AOC daemon for reducing significant jitter
+    if [ "`getprop init.svc.aocd`" = "running" ]; then
+        setprop ctl.stop aocd
+        force_restart_server=1
+    fi
+    
     # Nullifying the volume listener for no compressing audio (maybe a peak limiter)
     if [ "`getprop persist.sys.phh.disable_soundvolume_effect`" = "0" ]; then
         if [ -r "/system/phh/empty"  -a  -r "/vendor/lib/soundfx/libvolumelistener.so" ]; then

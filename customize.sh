@@ -2,6 +2,11 @@
 
 . "$MODPATH/customize-functions.sh"
 
+MAGISKTMP="$(magisk --path)/.magisk"
+
+# Note: Don't use "${MAGISKTMP}/mirror/system/vendor/*" instaed of "${MAGISKTMP}/mirror/vendor/*".
+# In some cases, the former may link to overlaied "/system/vendor" by Magisk itself (not mirrored original one).
+
 # Replace r_submix audio policy configuration file (default)
 REPLACE="
 /system/vendor/etc/r_submix_audio_policy_configuration.xml
@@ -15,6 +20,38 @@ for i in $REPLACE; do
     fi
 done
 
+# Check if on a Tensor device or not
+case "`getprop ro.board.platform`" in
+    gs* )
+        tensorFlag=1
+        ;;
+    * )
+        tensorFlag=0
+        ;;
+esac
+
+if [ "$tensorFlag" -eq 1 ]; then
+    # Unlocks the limiter of Tensor device's USB offload driver from 96kHz to 192kHz
+    fname="/system/vendor/etc/audio_platform_configuration.xml"
+    if [ -r "$fname" ]; then
+        mkdir -p "${MODPATH}${fname%/*}"
+        sed -e 's/min_rate="[1-9][0-9]*"/min_rate="44100"/g' \
+            -e 's/"MaxSamplingRate=[1-9][0-9]*,/"MaxSamplingRate=192000,/' \
+                <"${MAGISKTMP}/mirror${fname#/system}" >"${MODPATH}${fname}"
+        touch "${MODPATH}${fname}"
+        chmod 644 "${MODPATH}${fname}"
+        chcon u:object_r:vendor_file:s0 "${MODPATH}${fname}"
+        chown root:root "${MODPATH}${fname}"
+        chmod -R a+rX "${MODPATH}${fname}"
+        if [ -z "${REPLACE}" ]; then
+            REPLACE="${fname}"
+        else
+            REPLACE="${REPLACE} ${fname}"
+        fi
+    fi
+    
+fi
+
 # If detecting DRC-enabled or Tensor SoC, then make a DRC-less or Tensor specifically tuned config file and overlay
 #
 # Set the active configuration file name retrieved from the audio policy server
@@ -24,11 +61,8 @@ configXML="`getActivePolicyFile`"
 # "/my_product/etc" and "/odm/etc" are used on ColorOS (RealmeUI) and OxygenOS(?)
 case "$configXML" in
     /vendor/etc/* | /my_product/etc/* | /odm/etc/* | /system/etc/* | /product/etc/* )
-        MAGISKPATH="$(magisk --path)"
-        if [ -n "$MAGISKPATH"  -a  -r "$MAGISKPATH/.magisk/mirror${configXML}" ]; then
-            # Don't use "$MAGISKPATH/.magisk/mirror/system${configXML}" instead of "$MAGISKPATH/.magisk/mirror${configXML}".
-            # In some cases, the former may link to overlaied "${configXML}" by Magisk itself (not original mirrored "${configXML}".
-            mirrorConfigXML="$MAGISKPATH/.magisk/mirror${configXML}"
+        if [ -n "$MAGISKTMP"  -a  -r "${MAGISKTMP}/mirror${configXML}" ]; then
+            mirrorConfigXML="${MAGISKTMP}/mirror${configXML}"
         else
             mirrorConfigXML="$configXML"
         fi
@@ -47,14 +81,6 @@ case "$configXML" in
         else
             drcFlag=0
         fi
-        case "`getprop ro.board.platform`" in
-            gs* )
-                tensorFlag=1
-                ;;
-            * )
-                tensorFlag=0
-                ;;
-        esac
         
         if [ "$drcFlag" -eq 1  -o  "$tensorFlag" -eq 1 ]; then
             mkdir -p "${modConfigXML%/*}"
@@ -65,7 +91,7 @@ case "$configXML" in
                 DRC_enabled="false"
                 USB_module="usbv2"
                 BT_module="bluetooth"
-                sRate="96000"
+                sRate="192000"
                 aFormat="AUDIO_FORMAT_PCM_32_BIT"
                 sed -e "s/%DRC_ENABLED%/$DRC_enabled/" -e "s/%USB_MODULE%/$USB_module/" -e "s/%BT_MODULE%/$BT_module/" \
                     -e "s/%SAMPLING_RATE%/$sRate/" -e "s/%AUDIO_FORMAT%/$aFormat/" \
@@ -107,8 +133,11 @@ if "$IS64BIT"; then
         "kona" | "kalama" | "shima" | "yupik" )
             replaceSystemProps_Kona
             ;;
-        "sdm845" | gs* )
+        "sdm845" )
             replaceSystemProps_SDM845
+            ;;
+        gs* )
+            replaceSystemProps_Tensor 192000
             ;;
         "sdm660" | "bengal" | "holi" )
             replaceSystemProps_SDM
