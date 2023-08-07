@@ -1,6 +1,8 @@
 ## A Magisk module for maximizing the digital audio fidelity by reducing jitters on audio outputs (USB DACs, Bluetooth a2dp, DLNA, etc.)
 
-This module reduces jitters on audio outputs by optimizing kenel tunables (CPU & GPU  governors, thermal control, CPU hotplug, I/O scheduler, Virtual memory), Selinux mode, WIFI parameters, etc. as follows,
+Very many music lovers abandon audio quality on smart phones and DAP's by believing its causes are delivered from analog components. However, actually most of all the causes are less than 50Hz jitter (i.e., the standard deviation of actual audio data rate with a low-pass filter; usually converted in time domain) on digital audio outputs that generates very short reverb or foggy sound like distortion on analog audio outputs. Although more than 50 Hz (less than 20msec interval) jitter can be easily reduced under the hearable level by PLL (Phase Locked Loop) in DAC's, the other (especially less than 10Hz or more than 100msec interval) modulates and distorts audio outputs by fluctuating the master clock in a DAC through the PLL. See ["Audio jitter silencer"](https://github.com/Magisk-Modules-Alt-Repo/audio-jitter-silencer) for more explanation.
+
+For maximizing the audio fidelity, this module reduces less than 50Hz (more than 20msec interval) jitters on digital audio outputs by optimizing kenel tunables (CPU & GPU  governors, thermal control, CPU hotplug, I/O scheduler, Virtual memory), Selinux mode, WIFI parameters, etc. as follows,
 
 * For Reducing Jitters:
     <ol type="1">
@@ -45,17 +47,20 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
         change the number of steps in media volume to 100 steps (0.4~0.7dB per step).</li>
     <li>Resampling quality<br/>
         change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% of the Nyquist frequency & half filter length 32) to a very mastering quality (179dB & 99% & 408, 167dB & 106% & 368 or 160db & 91% & 480 (or 320 for low performance devices), i.e., no resampling distortion in a real sense even though the 160dB targeted attenuation is not accomplished in the AOSP implementation).</li>
-    <li>Adjust a USB transfer period of the USB HAL driver (not the hardware offload USB driver)<br/>
+    <li>Adjust a USB transfer period of the USB HAL driver (not the Qcomm hardware offload USB driver, but including ones of Tensor and MTK devices)<br/>
         for directly reducing the jitter of a PLL in a DAC (even in an asynchronous mode); Use <a href="https://github.com/yzyhk904/USB_SampleRate_Changer">"USB_SampleRate_Changer"</a> to switch from the usual hardware offload USB driver to the USB HAL one.</li>
     <li>Set a higher bitrate limit of bluetooth codec SBC (dual channel mode)<br/>
         for EDR 2Mbps entry class earphones (not for EDR 3Mbps performance ones, but including AV amplifiers and BT speakers).</li>
     <li>Set an audio scheduling tunable "vendor.audio.adm.buffering.ms" "2"<br/>
          to reduce jitter on all audio outputs.</li>
     <li>Nullify volume listener libraries in "soundfx" folders  for disabling slight compression (maybe a peak limiter only on Qcomm devices).</li>
+    <li>Set 192kHz & 32bit mode for the USB audio output of Tensor devices exceptionally<br/>
+         because Tensor devices lower the audio quality extremely for lower sample rates and bit depths. If your DAC cannot accept 32bit depth formats (e.g. Google's 3.5mm adapters and other very cheap ones), please edit "customize.sh" (in this Magisk module zip file) at line 95 and 96 to be `sRate="48000"` and `aFormat="AUDIO_FORMAT_PCM_24_BIT_PACKED"`.
+</li>
     </ol>
 <br/><br/>
 
-* Don't forget to install ["Audio jitter silencer"](https://github.com/Magisk-Modules-Alt-Repo/audio-jitter-silencer) together and uninstall "Digital Wellbeing" app (for reducing very large jitters which this module cannot reduce as itself)!
+* Don't forget to install ["Audio jitter silencer"](https://github.com/Magisk-Modules-Alt-Repo/audio-jitter-silencer) together and uninstall "Digital Wellbeing" app (for reducing very large jitters which this module cannot reduce as itself)! And uninstall ["Audio misc. settings"](https://github.com/Magisk-Modules-Alt-Repo/audio-misc-settings) and ["DRC remover"](https://github.com/Magisk-Modules-Alt-Repo/drc-remover) if they have already been installed, because all their functions are included in this module. Additionally if your device uses a Tensor SoC, uninstall ["USB SampleTate Unlocker"](https://github.com/Magisk-Modules-Alt-Repo/usb-samplerate-unlocker) for the same reason.
 
 * Don't use Am@zon music using a much worse internal re-sampler which bypasses the mastering quality re-sampling in the OS mixer (audioFlinger). Other music streaming services don't use such an internal re-sampler, as far as I know.
 
@@ -67,9 +72,9 @@ This module reduces jitters on audio outputs by optimizing kenel tunables (CPU &
 
 * See also my companion script ["USB_SampleRate_Changer"](https://github.com/yzyhk904/USB_SampleRate_Changer) to change the sample rate of the USB (HAL) audio class driver and a 3.5mm jack on the fly like Bluetooth LDAC or Windows mixer to enjoy high resolution sound or to reduce resampling distortion (actually pre-echo, ringing and intermodulation) ultimately.
 
-* Tips: If you use "AirMusic" to transmit audio data, I recommend setting around 4589 msec additional delay to reduce jitter distortion on the AirMusic panel to display target device(s).
+* Tips: If you use "AirMusic" to transmit audio data, I recommend setting around 4597 msec additional delay to reduce jitter distortion on the AirMusic panel to display target device(s).
 
-* Note1: Please remember that this module will stop the thermal control (including CPU core controls, CPU hotplugs and thermal services), the "logd server" and the "camera server" (interfering jitter on audio outputs), disable SELinux enforcing mode and doze (battery saver while idling) on your device. If you like to disable these features, modify variables in "service.sh", respectively.
+* Note1: Please remember that this module will stop the thermal control (including CPU core controls, CPU hotplugs and thermal services), the "logd server" and the "camera server" (interfering jitter on audio outputs), disable SELinux enforcing mode and doze (battery saver while idling) on your device. If you like to enable these features, modify variables in "service.sh", respectively. Especially, note that the "Youtube" app became recetly to need the camera server for launching for some unexplained reason.
 
 * Note2: If you prefer (too sensitive?) Bluetooth earphones to wired headphones and DLNA renderers, set "DisableClearestTone" variable to be "yes" in "service.sh".
 

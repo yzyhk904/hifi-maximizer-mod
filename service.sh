@@ -14,19 +14,19 @@ MODDIR=${0%/*}
 
 #
 
-# 1. Disable thermal control, Camera service (interfering in jitters on audio outputs), Selinux enforcing, Doze (battery optimizations)
+# 1. Enable thermal control, Camera service (interfering in jitters on audio outputs), Selinux enforcing, Doze (battery optimizations)
 #     and Logd service or not, respectively ("yes" or "no").
 # 2. Disable clearest tone ("yes" or "no"), perhaps for sensitive Bluetooth earphones.
 
-DisableThermalControl="no"
-DisableCameraService="no"
-DisableSelinuxEnforcing="no"
-DisableDoze="no"
-DisableLogdService="no"
+EnableThermalControl="no"
+EnableCameraService="no"
+EnableSelinuxEnforcing="no"
+EnableDoze="no"
+EnableLogdService="no"
 
 DisableClearestTone="no"
 
 # sleep 30 secs needed for "settings" commans to become effective and another kernel tunables setting process completion in an orphan process
 
-(((sleep 30; remountFile; optimizeOS $DisableThermalControl $DisableCameraService $DisableSelinuxEnforcing \
-                        $DisableDoze $DisableLogdService $DisableClearestTone)  0<&- &>"/dev/null" &) &)
+(((sleep 30; remountFile; optimizeOS $EnableThermalControl $EnableCameraService $EnableSelinuxEnforcing \
+                        $EnableDoze $EnableLogdService $EnableClearestTone)  0<&- &>"/dev/null" &) &)

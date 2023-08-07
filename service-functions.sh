@@ -67,7 +67,7 @@ function forceIgnoreAudioEffects()
 }
 
 # This function has six arguments:
-# 1. Disable $1:thermal core control, $2:Camera service (interfering in jitters on audio outputs), $3:Selinux enforcing, $4:Doze (battery optimizations)
+# 1. Enable $1:thermal core control, $2:Camera service (interfering in jitters on audio outputs), $3:Selinux enforcing, $4:Doze (battery optimizations)
 #     and $5:Logd service or not, respectively ("yes" or "no")
 # 2. Disable $6:clearest tone ("yes" or "no"), perhaps for sensitive Bluetooth earphones.
 
