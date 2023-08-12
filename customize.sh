@@ -137,7 +137,7 @@ if "$IS64BIT"; then
             replaceSystemProps_SDM845
             ;;
         gs* )
-            replaceSystemProps_Tensor 192000
+            replaceSystemProps_Tensor
             ;;
         "sdm660" | "bengal" | "holi" )
             replaceSystemProps_SDM
@@ -172,5 +172,29 @@ else
     rm -f "$MODPATH/system.prop-workaround"
 fi
 
+# Warning unneeded magisk modules
+
+if [ -e "${MODPATH%/*/*}/modules/audio-misc-settings" ]; then
+    ui_print ""
+    ui_print "****************************************************************"
+    ui_print " Uninstall \"Audio misc. settings\" manually later; this module includes all its features"
+    ui_print "****************************************************************"
+    ui_print ""
+fi
+if [ -e "${MODPATH%/*/*}/modules/drc-remover" ]; then
+    ui_print ""
+    ui_print "****************************************************************"
+    ui_print " Uninstall \"DRC remover\" manually later; this module includes all its features"
+    ui_print "****************************************************************"
+    ui_print ""
+fi
+if [ "$tensorFlag" -eq 1  -a  -e "${MODPATH%/*/*}/modules/usb-samplerate-unlocker" ]; then
+    ui_print ""
+    ui_print "****************************************************************"
+    ui_print " Uninstall \"USB Samplerate Unlocker\" manually later; this module includes all its features"
+    ui_print "****************************************************************"
+    ui_print ""
+fi
+ 
 rm -f "$MODPATH/customize-functions.sh"
 rm -rf "$MODPATH/templates"

@@ -1,6 +1,6 @@
 ## A Magisk module for maximizing the digital audio fidelity by reducing jitters on audio outputs (USB DACs, Bluetooth a2dp, DLNA, etc.)
 
-Very many music lovers abandon audio quality on smart phones and DAP's by believing its causes are delivered from analog components. However, actually most of all the causes are less than 50Hz jitter (i.e., the standard deviation of actual audio data rate with a low-pass filter; usually converted in time domain) on digital audio outputs that generates very short reverb or foggy sound like distortion on analog audio outputs. Although more than 50 Hz (less than 20msec interval) jitter can be easily reduced under the hearable level by PLL (Phase Locked Loop) in DAC's, the other (especially less than 10Hz or more than 100msec interval) modulates and distorts audio outputs by fluctuating the master clock in a DAC through the PLL. See ["Audio jitter silencer"](https://github.com/Magisk-Modules-Alt-Repo/audio-jitter-silencer) for more explanation.
+So many music lovers abandon audio quality on smart phones and DAP's by believing its causes are delivered from analog components. However, the most crucial cuase of it is actually less than 50Hz jitter (i.e., the standard deviation of actual audio data rate with a low-pass filter; usually converting into time-domain) on digital audio outputs that generates very short reverb or foggy sound like distortion on analog audio outputs. Although more than 50Hz (less than 20msec interval) jitter can be easily reduced under the hearable level by PLL (Phase Locked Loop) in DAC's, the other (especially less than 10Hz or more than 100msec interval) modulates and distorts audio outputs by fluctuating the master clock in a DAC through the PLL. For further explanation, see my another magisk module ["Audio jitter silencer"](https://github.com/Magisk-Modules-Alt-Repo/audio-jitter-silencer).
 
 For maximizing the audio fidelity, this module reduces less than 50Hz (more than 20msec interval) jitters on digital audio outputs by optimizing kenel tunables (CPU & GPU  governors, thermal control, CPU hotplug, I/O scheduler, Virtual memory), Selinux mode, WIFI parameters, etc. as follows,
 
@@ -17,7 +17,7 @@ For maximizing the audio fidelity, this module reduces less than 50Hz (more than
     <li>CPU hotplug<br>
         stop "MPDecision" server (if exists).</li>
     <li>Disable MediaTek EAS+ scheduler<br>
-        `echo '1' > "/proc/cpufreq/cpufreq_sched_disable"`</li>
+        ```echo '1' > "/proc/cpufreq/cpufreq_sched_disable"```</li>
     <li>Doze<br>
         stop the Android doze server.</li>
     <li>Selinux mode<br>
@@ -25,7 +25,7 @@ For maximizing the audio fidelity, this module reduces less than 50Hz (more than
     <li>Adaptive battery saving features<br>
         disable wifi suspend optimizations, the adaptive battery management, the adaptive charging management and the adaptive connectivity management.</li>
     <li>Kill effect chains<br>
-        force ignoring `/vendor/etc/audio_effects.xml` to disable equalizers, virtualizers, reverb's, visualizer, echo cancelers, automatic gain controls, etc. (very few vulnerable equalizers may crash by this killing, but please ignore it)</li>
+        force ignoring ```/vendor/etc/audio_effects.xml``` to disable equalizers, virtualizers, reverb's, visualizer, echo cancelers, automatic gain controls, etc. (very few vulnerable equalizers may crash by this killing, but please ignore it)</li>
     <li>Disable the android built-in spatial audio feature (A13 or higher; especially Tensor devices)<br/>
          bypass an otiose audio pass.</li>
     <li>Disable aocd service<br/>
@@ -42,7 +42,7 @@ For maximizing the audio fidelity, this module reduces less than 50Hz (more than
 * For Convenience and Audio Quality:
     <ol type="1">
     <li> Disable DRC (Dynamic Range Control, i.e., a kind of compression)<br/>
-        modify `/vendor/etc/*/audio_policy_configuration*.xml` to disable DRC if DRC has been enabled on a stock firmware.</li>
+        modify ```/vendor/etc/*/audio_policy_configuration*.xml``` to disable DRC if DRC has been enabled on a stock firmware.</li>
     <li>Volume steps<br/>
         change the number of steps in media volume to 100 steps (0.4~0.7dB per step).</li>
     <li>Resampling quality<br/>
@@ -55,12 +55,12 @@ For maximizing the audio fidelity, this module reduces less than 50Hz (more than
          to reduce jitter on all audio outputs.</li>
     <li>Nullify volume listener libraries in "soundfx" folders  for disabling slight compression (maybe a peak limiter only on Qcomm devices).</li>
     <li>Set 192kHz & 32bit mode for the USB audio output of Tensor devices exceptionally<br/>
-         because Tensor devices lower the audio quality extremely for lower sample rates and bit depths. If your DAC cannot accept 32bit depth formats (e.g. Google's 3.5mm adapters and other very cheap ones), please edit "customize.sh" (in this Magisk module zip file) at line 95 and 96 to be `sRate="48000"` and `aFormat="AUDIO_FORMAT_PCM_24_BIT_PACKED"`.
+         because Tensor devices lower audio quality extremely for lower sample rates and bit depths. If your DAC cannot accept 32bit depth formats (e.g. Google's 3.5mm adapters and other very cheap ones), please edit "customize.sh" (in this Magisk module zip file) at line 95 and 96 to be ```sRate="48000"``` and ```aFormat="AUDIO_FORMAT_PCM_24_BIT_PACKED"```.
 </li>
     </ol>
 <br/><br/>
 
-* Don't forget to install ["Audio jitter silencer"](https://github.com/Magisk-Modules-Alt-Repo/audio-jitter-silencer) together and uninstall "Digital Wellbeing" app (for reducing very large jitters which this module cannot reduce as itself)! And uninstall ["Audio misc. settings"](https://github.com/Magisk-Modules-Alt-Repo/audio-misc-settings) and ["DRC remover"](https://github.com/Magisk-Modules-Alt-Repo/drc-remover) if they have already been installed, because all their functions are included in this module. Additionally if your device uses a Tensor SoC, uninstall ["USB SampleTate Unlocker"](https://github.com/Magisk-Modules-Alt-Repo/usb-samplerate-unlocker) for the same reason.
+* Don't forget to install ["Audio jitter silencer"](https://github.com/Magisk-Modules-Alt-Repo/audio-jitter-silencer) together and uninstall "Digital Wellbeing" app (for reducing very large jitters which this module cannot reduce as itself)! And uninstall ["Audio misc. settings"](https://github.com/Magisk-Modules-Alt-Repo/audio-misc-settings) and ["DRC remover"](https://github.com/Magisk-Modules-Alt-Repo/drc-remover) if they have already been installed, because all their functions are included in this module. Additionally if your device uses a Tensor SoC, uninstall ["USB Samplerate Unlocker"](https://github.com/Magisk-Modules-Alt-Repo/usb-samplerate-unlocker) for the same reason.
 
 * Don't use Am@zon music using a much worse internal re-sampler which bypasses the mastering quality re-sampling in the OS mixer (audioFlinger). Other music streaming services don't use such an internal re-sampler, as far as I know.
 
@@ -72,7 +72,7 @@ For maximizing the audio fidelity, this module reduces less than 50Hz (more than
 
 * See also my companion script ["USB_SampleRate_Changer"](https://github.com/yzyhk904/USB_SampleRate_Changer) to change the sample rate of the USB (HAL) audio class driver and a 3.5mm jack on the fly like Bluetooth LDAC or Windows mixer to enjoy high resolution sound or to reduce resampling distortion (actually pre-echo, ringing and intermodulation) ultimately.
 
-* Tips: If you use "AirMusic" to transmit audio data, I recommend setting around 4597 msec additional delay to reduce jitter distortion on the AirMusic panel to display target device(s).
+* Tips: If you use "AirMusic" to transmit audio data, I recommend setting around 4601 msec additional delay to reduce jitter distortion on the AirMusic panel to display target device(s).
 
 * Note1: Please remember that this module will stop the thermal control (including CPU core controls, CPU hotplugs and thermal services), the "logd server" and the "camera server" (interfering jitter on audio outputs), disable SELinux enforcing mode and doze (battery saver while idling) on your device. If you like to enable these features, modify variables in "service.sh", respectively. Especially, note that the "Youtube" app became recetly to need the camera server for launching for some unexplained reason.
 

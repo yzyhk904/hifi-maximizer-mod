@@ -1,5 +1,9 @@
 ## Change logs
 
+# v2.5.2
+* Tuned tunables of I/O scheduler
+* Added warning messages for unneeded magisk modules
+
 # v2.5.1
 * Stopped Tensor device's AOC daemon for reducing significant jitter
 * Optimized "extras/jitter-reducer.sh" for reducing I/O scheduling jitter on Tensor devices

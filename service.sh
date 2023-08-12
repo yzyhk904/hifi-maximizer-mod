@@ -29,4 +29,4 @@ DisableClearestTone="no"
 # sleep 30 secs needed for "settings" commans to become effective and another kernel tunables setting process completion in an orphan process
 
 (((sleep 30; remountFile; optimizeOS $EnableThermalControl $EnableCameraService $EnableSelinuxEnforcing \
-                        $EnableDoze $EnableLogdService $EnableClearestTone)  0<&- &>"/dev/null" &) &)
+                        $EnableDoze $EnableLogdService $DisableClearestTone)  0<&- &>"/dev/null" &) &)
