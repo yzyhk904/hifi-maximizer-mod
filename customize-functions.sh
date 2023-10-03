@@ -211,11 +211,6 @@ function replaceSystemProps_S4()
     fi
     
     sed -i \
-        -e 's/ro\.audio\.resampler\.psd\.stopband=.*$/ro\.audio\.resampler\.psd\.stopband=194/' \
-        -e 's/ro\.audio\.resampler\.psd\.halflength=.*$/ro\.audio\.resampler\.psd\.halflength=520/' \
-        -e 's/ro\.audio\.resampler\.psd\.tbwcheat=.*$/ro\.audio\.resampler\.psd\.cutoff_percent=100/' \
-            "$MODPATH/system.prop"
-    sed -i \
         -e 's/ro\.audio\.resampler\.psd\.halflength=.*$/ro\.audio\.resampler\.psd\.halflength=320/' \
             "$MODPATH/system.prop-workaround"
 }

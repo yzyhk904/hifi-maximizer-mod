@@ -1,5 +1,10 @@
 ## Change logs
 
+# v2.5.3
+* Changed the re-sampling parameters for Galaxy S4 to the general purpose ones (optimized for 3.5mm jack; not USB DAC's)
+* Reduced I/O scheduling jitter on Tensor and SDM660 devices
+* Reduced CFQ I/O scheduling jitter on Qcomm devices
+
 # v2.5.2
 * Tuned tunables of I/O scheduler
 * Added warning messages for unneeded magisk modules
