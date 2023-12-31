@@ -72,7 +72,7 @@ For maximizing the audio fidelity, this module reduces less than 50Hz (more than
 
 * See also my companion script ["USB_SampleRate_Changer"](https://github.com/yzyhk904/USB_SampleRate_Changer) to change the sample rate of the USB (HAL) audio class driver and a 3.5mm jack on the fly like Bluetooth LDAC or Windows mixer to enjoy high resolution sound or to reduce resampling distortion (actually pre-echo, ringing and intermodulation) ultimately.
 
-* Tips: If you use "AirMusic" to transmit audio data, I recommend setting around 4601 msec additional delay to reduce jitter distortion on the AirMusic panel to display target device(s).
+* Tips: If you use "AirMusic" to transmit audio data, I recommend setting around 4599 msec additional delay to reduce jitter distortion on the AirMusic panel to display target device(s).
 
 * Note1: Please remember that this module will stop the thermal control (including CPU core controls, CPU hotplugs and thermal services), the "logd server" and the "camera server" (interfering jitter on audio outputs), disable SELinux enforcing mode and doze (battery saver while idling) on your device. If you like to enable these features, modify variables in "service.sh", respectively. Especially, note that the "Youtube" app became recetly to need the camera server for launching for some unexplained reason.
 

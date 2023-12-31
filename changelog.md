@@ -1,5 +1,9 @@
 ## Change logs
 
+# v2.5.4
+* Tuned the USB period size for Tensor devices (2625 usec to 2250 usec)
+* Fixed for Pixel 8's
+
 # v2.5.3
 * Changed the re-sampling parameters for Galaxy S4 to the general purpose ones (optimized for 3.5mm jack; not USB DAC's)
 * Reduced I/O scheduling jitter on Tensor and SDM660 devices
