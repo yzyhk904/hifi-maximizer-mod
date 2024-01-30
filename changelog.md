@@ -1,5 +1,9 @@
 ## Change logs
 
+#v2.5.5
+* Tuned the USB period size for SDM845 devices (2500 usec to 2250 usec)
+* Tuned the USB period size for other devices (to 2250 usec)
+
 # v2.5.4
 * Tuned the USB period size for Tensor devices (2625 usec to 2250 usec)
 * Fixed for Pixel 8's
