@@ -40,9 +40,9 @@ if [ "$tensorFlag" -eq 1 ]; then
                 <"${MAGISKTMP}/mirror${fname#/system}" >"${MODPATH}${fname}"
         touch "${MODPATH}${fname}"
         chmod 644 "${MODPATH}${fname}"
-        chcon u:object_r:vendor_file:s0 "${MODPATH}${fname}"
+        chcon u:object_r:vendor_configs_file:s0 "${MODPATH}${fname}"
         chown root:root "${MODPATH}${fname}"
-        chmod -R a+rX "${MODPATH}${fname}"
+        chmod -R a+rX "${MODPATH}${fname%/*}"
         if [ -z "${REPLACE}" ]; then
             REPLACE="${fname}"
         else
