@@ -2,6 +2,10 @@
 
 . "$MODPATH/customize-functions.sh"
 
+if ! isMagiskMountCompatible; then
+    abort "  ***  Aborted by an incompatible Magisk variant detection. Try again with pure Magisk! ***"
+fi
+
 MAGISKTMP="$(magisk --path)/.magisk"
 
 # Note: Don't use "${MAGISKTMP}/mirror/system/vendor/*" instaed of "${MAGISKTMP}/mirror/vendor/*".
