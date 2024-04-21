@@ -27,6 +27,9 @@ function forceIgnoreAudioEffects()
     local force_restart_server=0
 
     if [ "`getprop persist.sys.phh.disable_audio_effects`" = "0" ]; then
+        # Workaround for recent Pixel Firmwares (not to reboot when resetprop'ing)
+        resetprop --delete ro.audio.ignore_effects 1>"/dev/null" 2>&1
+        # End of workaround
         resetprop ro.audio.ignore_effects true
         force_restart_server=1
     fi

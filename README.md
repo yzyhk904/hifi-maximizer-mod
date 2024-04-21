@@ -78,6 +78,28 @@ For maximizing the audio fidelity, this module reduces less than 50 Hz (longer t
 
 * Note2: If you prefer (too sensitive?) Bluetooth earphones to wired headphones and DLNA renderers, set "DisableClearestTone" variable to be "yes" in "service.sh".
 
+* Appendix (Resampling Parameter Examples):
+    
+    
+    | Stop band attenuation (dB) | Half filter length | Cut-off (%) | Stop band (%) | Memo |
+    | ---: | ---: | ---: | ---: | ---- |
+    | 90 | 32 | 100 | | AOSP default |
+    | This mod. parameters: | - | - | - | - |
+    | 160 | 320 | 91 | | Low Performance devices under A12 |
+    | 160 | 480 | 91 | | High Performance devices under A12 |
+    | 167 | 368 | | 106 | Low Performance devices for A12 and later |
+    | 179 | 408 | | 99 | High Performance devices for A12 and later, and Galaxy S4 |
+    | External examples: | - | - | - | - |
+    | 100 | 29 | | 109 | AK4493 (Sharp Roll-Off for N-fold over-sampling) |
+    | 150 | 42 | | 109 | AK4191EQ (Sharp Roll-Off for N-fold over-sampling) |
+    | 120 | 35 | | 110 | ESS 9038PRO (Fast Roll-Off for N-fold over-sampling) |
+    | 118 | 34 | 96 | | ESS 9039PRO (Fast Roll-Off for N-fold over-sampling) |
+    | 98 | 130 | 98.5 | | MacOS Leopard (guess) |
+    | 160 | 240 | | 100 | iZotope, No-Alias (guess) |
+    | 98 | 64 | | 100 | SoX HQ linear phase (guess) |
+    | 170 | 520 | | 100 | SoX VHQ linear phase (guess) |
+
+<br/>
 <br/>
 
 ## DISCLAIMER
