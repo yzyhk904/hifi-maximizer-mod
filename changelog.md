@@ -1,5 +1,9 @@
 ## Change logs
 
+# v2.5.7
+* Changed head ahead buffer sizes from 16960 kB to 17000 kB to reduce I/O jitter
+* Adjusted NrRequests of I/O scheduling
+
 #v2.5.6
 * Added "compatible Magisk-mirroring" message for incompatible Magisk variants
 
