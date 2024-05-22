@@ -55,7 +55,7 @@ For maximizing the audio fidelity, this module reduces less than 50 Hz (longer t
          to reduce jitter on all audio outputs.</li>
     <li>Nullify volume listener libraries in "soundfx" folders  for disabling slight compression (maybe a peak limiter only on Qcomm devices).</li>
     <li>Set 192kHz & 32bit mode for the USB audio output of Tensor devices exceptionally<br/>
-         because Tensor devices lower audio quality extremely for lower sample rates and bit depths. If your DAC cannot accept 32bit depth formats (e.g. Google's 3.5mm adapters and other very cheap ones), please edit "customize.sh" (in this Magisk module zip file) at line 95 and 96 to be ```sRate="96000"``` & ```aFormat="AUDIO_FORMAT_PCM_24_BIT_PACKED"``` or ```sRate="48000"``` & ```aFormat="AUDIO_FORMAT_PCM_16_BIT"```.
+         because Tensor devices lower audio quality extremely for lower sample rates and bit depths, though the quality of in-DAC over-sampling filters is much worse than that of the re-sampling filter used by this module and the filters lower the quality particularly for input of lower sample rates as usual. If your DAC cannot accept 32bit depth formats (e.g. Google's 3.5mm adapters and other very cheap ones), please edit "customize.sh" (in this Magisk module zip file) at line 95 and 96 to be ```sRate="96000"``` & ```aFormat="AUDIO_FORMAT_PCM_24_BIT_PACKED"``` or ```sRate="48000"``` & ```aFormat="AUDIO_FORMAT_PCM_16_BIT"```.
 </li>
     </ol>
 <br/><br/>
@@ -78,7 +78,7 @@ For maximizing the audio fidelity, this module reduces less than 50 Hz (longer t
 
 * Note2: If you prefer (too sensitive?) Bluetooth earphones to wired headphones and DLNA renderers, set "DisableClearestTone" variable to be "yes" in "service.sh".
 
-* Appendix (Resampling Parameter Examples):
+* Appendix A. Examples of Re-sampling Parameters:
     
     
     | Stop band attenuation (dB) | Half filter length | Cut-off (%) | Stop band (%) | Memo |
@@ -87,17 +87,18 @@ For maximizing the audio fidelity, this module reduces less than 50 Hz (longer t
     | This mod. parameters: | - | - | - | - |
     | 160 | 320 | 91 | | Low Performance devices under A12 |
     | 160 | 480 | 91 | | High Performance devices under A12 |
-    | 167 | 368 | | 106 | Low Performance devices for A12 and later |
+    | 165 | 360 | | 104 | Low Performance devices for A12 and later |
     | 179 | 408 | | 99 | High Performance devices for A12 and later, and Galaxy S4 |
     | External examples: | - | - | - | - |
     | 100 | 29 | (91) | 109 | AK4493 (Sharp roll-off N-fold over-sampling) |
     | 150 | 42 | (91) | 109 | AK4191EQ (Sharp roll-off N-fold over-sampling) |
     | 120 | 35 | (97) | 110 | ESS 9038PRO (Fast roll-off N-fold over-sampling) |
     | 50 ~ 118 | 34 | 96 | (398) | ESS 9039PRO (Fast roll-off N-fold over-sampling) |
+    | 110 | 40 | (96) | 109 | CX43131 (Fast roll-off N-fold over-sampling) |
     | 98 | 130 | 98.5 | | MacOS Leopard (guess) |
-    | 160 | 240 | | 100 | iZotope, No-Alias (guess) |
-    | 98 | 64 | | 100 | SoX HQ linear phase (guess) |
-    | 170 | 520 | | 100 | SoX VHQ linear phase (guess) |
+    | 159 | 240 | | 99 | iZotope, No-Alias (guess) |
+    | 100 | 64 | | 99 | SoX HQ linear phase (guess) |
+    | 170 | 520 | | 99 | SoX VHQ linear phase (guess) |
 
 <br/>
 <br/>
