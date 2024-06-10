@@ -46,7 +46,7 @@ For maximizing the audio fidelity, this module reduces less than 50 Hz (longer t
     <li>Volume steps<br/>
         change the number of steps in media volume to 100 steps (0.4~0.7dB per step).</li>
     <li>Resampling quality<br/>
-        change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% of the Nyquist frequency & half filter length 32) to a very mastering quality (179dB & 99% & 408, 167dB & 106% & 368 or 160db & 91% & 480 (or 320 for low performance devices), i.e., no resampling distortion in a real sense even though the 160dB targeted attenuation is not accomplished in the AOSP implementation).</li>
+        change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% of the Nyquist frequency & half filter length 32) to a very mastering quality (179dB & 99% & 408, 167dB & 106% & 368 or 160db & 91% & 480 (or 320 for low performance devices), i.e., no resampling distortion in a real sense even though the 160dB targeted attenuation is not accomplished in the AOSP implementation). However, use <a href="https://github.com/Magisk-Modules-Alt-Repo/resampling-for-cheapies">"Resampling for cheapies"</a> to override these resampling settings if you intend to use DAC's under $30 or LDAC BT devices.</li>
     <li>Adjust a USB transfer period of the USB HAL driver (not the Qcomm hardware offload USB driver, but including ones of Tensor and MTK devices)<br/>
         for directly reducing the jitter of a PLL in a DAC (even in an asynchronous mode); Use <a href="https://github.com/yzyhk904/USB_SampleRate_Changer">"USB_SampleRate_Changer"</a> to switch from the usual hardware offload USB driver to the USB HAL one.</li>
     <li>Set a higher bitrate limit of bluetooth codec SBC (dual channel mode)<br/>
@@ -85,8 +85,8 @@ For maximizing the audio fidelity, this module reduces less than 50 Hz (longer t
     | ---: | ---: | ---: | ---: | ---- |
     | 90 | 32 | 100 | | AOSP default |
     | This mod. parameters: | - | - | - | - |
-    | 160 | 320 | 91 | | Low Performance devices under A12 |
-    | 160 | 480 | 91 | | High Performance devices under A12 |
+    | 159 | 320 | 92 | | Low Performance devices under A12 |
+    | 159 | 480 | 92 | | High Performance devices under A12 |
     | 165 | 360 | | 104 | Low Performance devices for A12 and later |
     | 179 | 408 | | 99 | High Performance devices for A12 and later, and Galaxy S4 |
     | External examples: | - | - | - | - |
@@ -105,6 +105,6 @@ For maximizing the audio fidelity, this module reduces less than 50 Hz (longer t
 
 ## DISCLAIMER
 
-* I am not responsible for any damage that may occur to your device, so it is your own choice to attempt this module.
+* I am not responsible for any damage that may occur to your device, so it is your own choice whether to attempt this module or not.
 
 ##
