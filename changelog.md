@@ -1,5 +1,9 @@
 ## Change logs
 
+# v2.5.8
+* Changed adjustSoC_mq for A14 and later clover not to round I/O parameters
+* Adjusted cfq I/O parameters for SDM69x devices
+
 # v2.5.7
 * Changed head ahead buffer sizes from 16960 kB to 17000 kB to reduce I/O jitter
 * Adjusted NrRequests of I/O scheduling
