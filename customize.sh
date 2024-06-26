@@ -113,6 +113,12 @@ case "$configXML" in
             chown root:root "$modConfigXML"
             chmod -R a+rX "${modConfigXML%/*}"
             REPLACE="/system${configXML} $REPLACE"
+            
+            # If "${configXML}" isn't symbolically linked to "$/system/{configXML}", 
+            #   disable Magisk's "magic mount" and mount "${configXML}" by this module itself in "service.sh"
+            if [ ! -e "/system${configXML}" ]; then
+                touch "$MODPATH/skip_mount"
+            fi
         fi
         ;;
     * )

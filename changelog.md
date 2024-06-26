@@ -1,14 +1,13 @@
 ## Change logs
 
-# v2.5.8
-* Changed adjustSoC_mq for A14 and later clover not to round I/O parameters
-* Adjusted cfq I/O parameters for SDM69x devices
-
 # v2.5.7
 * Changed head ahead buffer sizes from 16960 kB to 17000 kB to reduce I/O jitter
 * Adjusted NrRequests of I/O scheduling
 * Changed dirty_ratio and dirty_background_ration to be 100 to reduce jitter
 * Adjusted re-sampling parameters for old devices
+* Changed adjustSoC_mq for A14 and later clover not to round I/O parameters
+* Adjusted cfq I/O parameters for SDM69x devices
+* Changed the way how to get the actual audio policy file path in the service phase because some ROM's fail to execute "dumpsys" in the phase
 
 #v2.5.6
 * Added "compatible Magisk-mirroring" message for incompatible Magisk variants
