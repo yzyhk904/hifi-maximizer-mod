@@ -9,10 +9,10 @@
 * Adjusted cfq I/O parameters for SDM69x devices
 * Changed the way how to get the actual audio policy file path in the service phase because some ROM's fail to execute "dumpsys" in the phase
 
-#v2.5.6
+# v2.5.6
 * Added "compatible Magisk-mirroring" message for incompatible Magisk variants
 
-#v2.5.5
+# v2.5.5
 * Tuned the USB period size for SDM845 devices (2500 usec to 2250 usec)
 * Tuned the USB period size for other devices (to 2250 usec)
 * Fixed logically wrong selinux prop settings (no meaning for magisk's magic mount mechanism)
