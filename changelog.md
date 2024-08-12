@@ -6,6 +6,7 @@
 * Changed the USB period_us from 2250 usec to 2000 usec to optimize for 48 kHz Opus tracks (recent majority)
 * Adjusted jitter optimizations and others for YTM's format change from AAC (141; 44.1 kHz & 256 kbps cbr stereo) to Opus (774; 48 kHz & 256 kbps vbr stereo)
 * Added new props "audio.safemedia.force=false" and "audio.safemedia.csd.force=false"
+* Fixed above disabling Dolby control support (manufacturer mismatch)
 
 # v2.5.7
 * Changed head ahead buffer sizes from 16960 kB to 17000 kB to reduce I/O jitter
