@@ -33,7 +33,7 @@ done
 
 # Check if on a Tensor device or not
 case "`getprop ro.board.platform`" in
-    gs* )
+    gs* | zuma* )
         tensorFlag=1
         ;;
     * )

@@ -3,6 +3,8 @@
 # v2.5.9
 * Optimized I/O scheduler tunables for POCO F6
 * Added a support for Tensor G4 (zuma pro)
+* Tuned I/O scheduler tunables especially for "resampling-for-cheapies"
+* Fixed an always 192 kHz USB  audio output mode for Pixel 8 and 9 series
 
 # v2.5.8
 * Added disabling Dolby control support for USB DAC's on HyperOS not to reboot
