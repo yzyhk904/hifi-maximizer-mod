@@ -6,6 +6,7 @@
 * Tuned I/O scheduler tunables especially for "resampling-for-cheapies"
 * Fixed an always 192 kHz USB  audio output mode for Pixel 8 and 9 series
 * Changed the USB offload driver configuration of Tensor devices to be automatic detection
+* Changed a mirroring warning for incompatible Magisk v28.0; Please use [Compatible magisk-mirroring](https://github.com/Magisk-Modules-Alt-Repo/compatible-magisk-mirroring) and Magisk v28.0 together
 
 # v2.5.8
 * Added disabling Dolby control support for USB DAC's on HyperOS not to reboot
