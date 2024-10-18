@@ -8,7 +8,7 @@ if ! isMagiskMountCompatible; then
     abort '  ***
   Aborted by no Magisk-mirrors:
     try again either
-      a.) with official Magisk (mounting mirrors), or
+      a.) with official Magisk v27.0 (mounting mirrors), or
       b.) after installing "Compatible Magisk-mirroring" Magisk module and rebooting
   ***'
 fi
@@ -100,13 +100,9 @@ case "$configXML" in
                 stopDRC "$mirrorConfigXML" "$modConfigXML"
             else
                 DRC_enabled="false"
-                USB_module="usbv2"
                 BT_module="bluetooth"
-                sRate="192000"
-                aFormat="AUDIO_FORMAT_PCM_32_BIT"
-                sed -e "s/%DRC_ENABLED%/$DRC_enabled/" -e "s/%USB_MODULE%/$USB_module/" -e "s/%BT_MODULE%/$BT_module/" \
-                    -e "s/%SAMPLING_RATE%/$sRate/" -e "s/%AUDIO_FORMAT%/$aFormat/" \
-                        "$MODPATH/templates/bypass_offload_safer_tensor_template.xml" >"$modConfigXML"
+                sed -e "s/%DRC_ENABLED%/$DRC_enabled/" -e "s/%BT_MODULE%/$BT_module/" \
+                        "$MODPATH/templates/bypass_offload_auto_tensor_template.xml" >"$modConfigXML"
             fi
             chmod 644 "$modConfigXML"
             chcon u:object_r:vendor_configs_file:s0 "$modConfigXML"

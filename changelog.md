@@ -5,6 +5,7 @@
 * Added a support for Tensor G4 (zuma pro)
 * Tuned I/O scheduler tunables especially for "resampling-for-cheapies"
 * Fixed an always 192 kHz USB  audio output mode for Pixel 8 and 9 series
+* Changed the USB offload driver configuration of Tensor devices to be automatic detection
 
 # v2.5.8
 * Added disabling Dolby control support for USB DAC's on HyperOS not to reboot

@@ -27,7 +27,7 @@ EnableLogdService="no"
 
 DisableClearestTone="no"
 
-# sleep more than 30 secs (waitAudioServer) needed for "settings" commans 
+# sleep more than 30 secs (waitAudioServer) needed for "settings" commands 
 #   to become effective and another kernel tunables setting process completion in an orphan process
 
 (((waitAudioServer; remountFile "$MODDIR"; optimizeOS $EnableThermalControl $EnableCameraService $EnableSelinuxEnforcing \

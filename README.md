@@ -54,8 +54,8 @@ For maximizing the audio fidelity, this module reduces less than 50 Hz (longer t
     <li>Set an audio scheduling tunable "vendor.audio.adm.buffering.ms" "2"<br/>
          to reduce jitter on all audio outputs.</li>
     <li>Nullify volume listener libraries in "soundfx" folders  for disabling slight compression (maybe a peak limiter only on Qcomm devices).</li>
-    <li>Set 192kHz & 32bit mode for the USB audio output of Tensor devices exceptionally<br/>
-         because Tensor devices lower audio quality extremely for lower sample rates and bit depths, though the quality of in-DAC over-sampling filters is much worse than that of the re-sampling filter used by this module and the filters lower the quality particularly for input of lower sample rates as usual. If your DAC cannot accept 32bit depth formats (e.g. Google's 3.5mm adapters and other very cheap ones), please edit "customize.sh" (in this Magisk module zip file) at line 95 and 96 to be ```sRate="96000"``` & ```aFormat="AUDIO_FORMAT_PCM_24_BIT_PACKED"``` or ```sRate="48000"``` & ```aFormat="AUDIO_FORMAT_PCM_16_BIT"```.
+    <li>Set 192kHz & 32bit mode (max., but automatic for lower capability DAC's) for all the USB audio outputs (including non- Hi-Res audio tracks) of Tensor devices exceptionally<br/>
+         because Tensor devices lower audio quality extremely for lower sample rates and bit depths, though the quality of in-DAC over-sampling filters is much worse than that of the re-sampling filter used by this module and the filters lower the quality particularly for input of lower sample rates as usual.
 </li>
     </ol>
 <br/><br/>
