@@ -18,12 +18,14 @@ MAGISKTMP="$(magisk --path)/.magisk"
 # Note: Don't use "${MAGISKTMP}/mirror/system/vendor/*" instaed of "${MAGISKTMP}/mirror/vendor/*".
 # In some cases, the former may link to overlaied "/system/vendor" by Magisk itself (not mirrored original one).
 
+REPLACE=""
+
 # Replace r_submix audio policy configuration file (default)
-REPLACE="
+REPLACEFILES="
 /system/vendor/etc/r_submix_audio_policy_configuration.xml
 "
 
-for i in $REPLACE; do
+for i in $REPLACEFILES; do
     if [ -r "$i" ]; then
         chmod 644 "${MODPATH}${i}"
         chcon u:object_r:vendor_configs_file:s0 "${MODPATH}${i}"
@@ -54,10 +56,10 @@ if [ "$tensorFlag" -eq 1 ]; then
         chcon u:object_r:vendor_configs_file:s0 "${MODPATH}${fname}"
         chown root:root "${MODPATH}${fname}"
         chmod -R a+rX "${MODPATH}${fname%/*}"
-        if [ -z "${REPLACE}" ]; then
-            REPLACE="${fname}"
+        if [ -z "${REPLACEFILES}" ]; then
+            REPLACEFILES="${fname}"
         else
-            REPLACE="${REPLACE} ${fname}"
+            REPLACEFILES="${REPLACEFILES} ${fname}"
         fi
     fi
     
@@ -108,7 +110,7 @@ case "$configXML" in
             chcon u:object_r:vendor_configs_file:s0 "$modConfigXML"
             chown root:root "$modConfigXML"
             chmod -R a+rX "${modConfigXML%/*}"
-            REPLACE="/system${configXML} $REPLACE"
+            REPLACEFILES="/system${configXML} $REPLACEFILES"
             
             # If "${configXML}" isn't symbolically linked to "$/system/{configXML}", 
             #   disable Magisk's "magic mount" and mount "${configXML}" by this module itself in "service.sh"
@@ -157,13 +159,16 @@ fi
 if "$IS64BIT"; then
     board="`getprop ro.board.platform`"
     case "$board" in
+        zuma* | "pineapple" )
+            replaceSystemProps_VHPerf
+            ;;
         "kona" | "kalama" | "shima" | "yupik" )
             replaceSystemProps_Kona
             ;;
         "sdm845" )
             replaceSystemProps_SDM845
             ;;
-        gs* | zuma* )
+        gs* )
             replaceSystemProps_Tensor
             ;;
         "sdm660" | "bengal" | "holi" )
@@ -225,3 +230,4 @@ fi
  
 rm -f "$MODPATH/customize-functions.sh" "$MODPATH/LICENSE" "$MODPATH/README.md" "$MODPATH/changelog.md"
 rm -rf "$MODPATH/templates"
+ui_print_replacelist "$REPLACEFILES"

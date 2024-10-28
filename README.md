@@ -1,6 +1,6 @@
 ## A Magisk module for maximizing the digital audio fidelity by reducing jitters on audio outputs (USB DACs, Bluetooth a2dp, DLNA, etc.)
 
-So many music lovers abandon audio quality on smart phones and DAP's by believing its causes are delivered from analog components. However, the most crucial cuase of it is actually shorter than 50 Hz jitter (i.e., the standard deviation of actual audio data rate with a low-pass filter; usually converting into time-domain) on digital audio outputs that generates very short reverb or foggy sound like distortion on analog audio outputs. Although more than 50 Hz (shorter than 20 msec. interval) jitter can be easily reduced under the hearable level by a PLL (Phase Locked Loop) in DAC's, the other (especially less than 10 Hz or longer than 100 msec. interval) modulates and distorts audio outputs by fluctuating the master clock in a DAC through the PLL. For further explanation, see my another magisk module ["Audio jitter silencer"](https://github.com/Magisk-Modules-Alt-Repo/audio-jitter-silencer).
+So many music lovers abandon audio quality on smart phones and DAP's by believing its causes are delivered from analog components. However, the most crucial cuase of it is actually less than 50 Hz jitter (i.e., the standard deviation of actual audio data rate with a low-pass filter; usually converting into time-domain) on digital audio outputs that generates very short reverb or foggy sound like distortion on analog audio outputs. Although larger than 50 Hz (shorter than 20 msec. interval) jitter can be easily reduced under the hearable level by a PLL (Phase Locked Loop) in DAC's, the other (especially less than 10 Hz or longer than 100 msec. interval) modulates and distorts audio outputs by fluctuating the master clock in a DAC through the PLL. For further explanation, see my another magisk module ["Audio jitter silencer"](https://github.com/Magisk-Modules-Alt-Repo/audio-jitter-silencer).
 
 For maximizing the audio fidelity, this module reduces less than 50 Hz (longer than 20 msec interval) jitters on digital audio outputs by optimizing kenel tunables (CPU & GPU  governors, thermal control, CPU hotplug, I/O scheduler, Virtual memory), Selinux mode, WIFI parameters, etc. as follows,
 
@@ -46,7 +46,7 @@ For maximizing the audio fidelity, this module reduces less than 50 Hz (longer t
     <li>Volume steps<br/>
         change the number of steps in media volume to 100 steps (0.4~0.7dB per step).</li>
     <li>Resampling quality<br/>
-        change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% of the Nyquist frequency & half filter length 32) to a very mastering quality (179dB & 99% & 408, 167dB & 106% & 368 or 160db & 91% & 480 (or 320 for low performance devices), i.e., no resampling distortion in a real sense even though the 160dB targeted attenuation is not accomplished in the AOSP implementation). However, install <a href="https://github.com/Magisk-Modules-Alt-Repo/resampling-for-cheapies">"Resampling for cheapies" module</a> together to override these resampling settings if you intend to use LDAC bluetooth earphones or DAC's under $30.</li>
+        change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% of the Nyquist frequency & half filter length 32) to a very mastering quality (194dB & 98% & 520, 179dB & 99% & 408, 167dB & 106% & 368 or 160db & 91% & 480 (or 320 for low performance devices), i.e., no resampling distortion in a real sense even though the 160dB targeted attenuation is not accomplished in the AOSP implementation). However, install <a href="https://github.com/Magisk-Modules-Alt-Repo/resampling-for-cheapies">"Resampling for cheapies" module</a> together to override these resampling settings if you intend to use LDAC bluetooth earphones or DAC's under $30.</li>
     <li>Adjust a USB transfer period of the USB HAL driver (not the Qcomm hardware offload USB driver, but including ones of Tensor and MTK devices)<br/>
         for directly reducing the jitter of a PLL in a DAC (even in an asynchronous mode); Use <a href="https://github.com/yzyhk904/USB_SampleRate_Changer">"USB_SampleRate_Changer"</a> to switch from the usual hardware offload USB driver to the USB HAL one.</li>
     <li>Set a higher bitrate limit of bluetooth codec SBC (dual channel mode)<br/>
@@ -60,7 +60,7 @@ For maximizing the audio fidelity, this module reduces less than 50 Hz (longer t
     </ol>
 <br/><br/>
 
-* Don't forget to install ["Audio jitter silencer"](https://github.com/Magisk-Modules-Alt-Repo/audio-jitter-silencer) together and uninstall "Digital Wellbeing" app (for reducing very large jitters which this module cannot reduce as itself)! And uninstall ["Audio misc. settings"](https://github.com/Magisk-Modules-Alt-Repo/audio-misc-settings) and ["DRC remover"](https://github.com/Magisk-Modules-Alt-Repo/drc-remover) if they have already been installed, because all their functions are included in this module. Additionally if your device uses a Tensor SoC, uninstall ["USB Samplerate Unlocker"](https://github.com/Magisk-Modules-Alt-Repo/usb-samplerate-unlocker) for the same reason.
+* Don't forget to install ["Audio jitter silencer"](https://github.com/Magisk-Modules-Alt-Repo/audio-jitter-silencer) together and uninstall "Digital Wellbeing" app (for reducing very large jitters which this module cannot reduce by itself)! And uninstall ["Audio misc. settings"](https://github.com/Magisk-Modules-Alt-Repo/audio-misc-settings) and ["DRC remover"](https://github.com/Magisk-Modules-Alt-Repo/drc-remover) if they have already been installed, because all their functions are included in this module. Additionally if your device uses a Tensor SoC, uninstall ["USB Samplerate Unlocker"](https://github.com/Magisk-Modules-Alt-Repo/usb-samplerate-unlocker) for the same reason.
 
 * Don't use Am@zon music using a much worse internal re-sampler which bypasses the mastering quality re-sampling in the OS mixer (audioFlinger). Other music streaming services don't use such an internal re-sampler, as far as I know.
 
@@ -89,6 +89,7 @@ For maximizing the audio fidelity, this module reduces less than 50 Hz (longer t
     | 159 | 480 | 92 | | High Performance devices under A12 |
     | 165 | 360 | | 104 | Low Performance devices for A12 and later |
     | 179 | 408 | | 99 | High Performance devices for A12 and later, and Galaxy S4 |
+    | 194 | 520 | | 98 | Very High Performance devices |
     | External examples: | - | - | - | - |
     | 100 | 29 | (91) | 109 | AK4493 (Sharp roll-off N-fold over-sampling) |
     | 150 | 42 | (91) | 109 | AK4191EQ (Sharp roll-off N-fold over-sampling) |
