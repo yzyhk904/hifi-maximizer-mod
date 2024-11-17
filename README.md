@@ -45,12 +45,12 @@ For maximizing the audio fidelity, this module reduces less than 50 Hz (longer t
         modify ```/vendor/etc/*/audio_policy_configuration*.xml``` to disable DRC if DRC has been enabled on a stock firmware.</li>
     <li>Volume steps<br/>
         change the number of steps in media volume to 100 steps (0.4~0.7dB per step).</li>
+    <li>Disables the sound dose feature of the mixer<br/>
+        Not to defocuse the shape of sound images, also reduce jitter.</li>
     <li>Resampling quality<br/>
         change AudioFlinger's resampling quality from the AOSP standard one (stop band attenuation 90dB & cut off 100% of the Nyquist frequency & half filter length 32) to a very mastering quality (194dB & 98% & 520, 179dB & 99% & 408, 167dB & 106% & 368 or 160db & 91% & 480 (or 320 for low performance devices), i.e., no resampling distortion in a real sense even though the 160dB targeted attenuation is not accomplished in the AOSP implementation). However, install <a href="https://github.com/Magisk-Modules-Alt-Repo/resampling-for-cheapies">"Resampling for cheapies" module</a> together to override these resampling settings if you intend to use LDAC bluetooth earphones or DAC's under $30.</li>
     <li>Adjust a USB transfer period of the USB HAL driver (not the Qcomm hardware offload USB driver, but including ones of Tensor and MTK devices)<br/>
         for directly reducing the jitter of a PLL in a DAC (even in an asynchronous mode); Use <a href="https://github.com/yzyhk904/USB_SampleRate_Changer">"USB_SampleRate_Changer"</a> to switch from the usual hardware offload USB driver to the USB HAL one.</li>
-    <li>Set a higher bitrate limit of bluetooth codec SBC (dual channel mode)<br/>
-        for EDR 2Mbps entry class earphones (not for EDR 3Mbps performance ones, but including AV amplifiers and BT speakers).</li>
     <li>Set an audio scheduling tunable "vendor.audio.adm.buffering.ms" "2"<br/>
          to reduce jitter on all audio outputs.</li>
     <li>Nullify volume listener libraries in "soundfx" folders  for disabling slight compression (maybe a peak limiter only on Qcomm devices).</li>

@@ -33,9 +33,9 @@ for i in $REPLACEFILES; do
     fi
 done
 
-# Check if on a Tensor device or not
+# Check if on a Tensor (except zumapro) device or not
 case "`getprop ro.board.platform`" in
-    gs* | zuma* )
+    gs* | "zuma" )
         tensorFlag=1
         ;;
     * )
@@ -48,8 +48,8 @@ if [ "$tensorFlag" -eq 1 ]; then
     fname="/system/vendor/etc/audio_platform_configuration.xml"
     if [ -r "$fname" ]; then
         mkdir -p "${MODPATH}${fname%/*}"
-        sed -e 's/min_rate="[1-9][0-9]*"/min_rate="44100"/g' \
-            -e 's/"MaxSamplingRate=[1-9][0-9]*,/"MaxSamplingRate=192000,/' \
+        sed -e 's|min_rate="[1-9][0-9]*"|min_rate="44100"|g' \
+            -e 's|"MaxSamplingRate=[1-9][0-9]*,|"MaxSamplingRate=192000,|' \
                 <"${MAGISKTMP}/mirror${fname#/system}" >"${MODPATH}${fname}"
         touch "${MODPATH}${fname}"
         chmod 644 "${MODPATH}${fname}"
@@ -103,7 +103,7 @@ case "$configXML" in
             else
                 DRC_enabled="false"
                 BT_module="bluetooth"
-                sed -e "s/%DRC_ENABLED%/$DRC_enabled/" -e "s/%BT_MODULE%/$BT_module/" \
+                sed -e "s|%DRC_ENABLED%|$DRC_enabled|" -e "s|%BT_MODULE%|$BT_module|" \
                         "$MODPATH/templates/bypass_offload_auto_tensor_template.xml" >"$modConfigXML"
             fi
             chmod 644 "$modConfigXML"
@@ -118,6 +118,9 @@ case "$configXML" in
                 touch "$MODPATH/skip_mount"
             fi
         fi
+        ;;
+    "N/A" )
+        # AIDL only devices or ones in some trouble
         ;;
     * )
         ;;
