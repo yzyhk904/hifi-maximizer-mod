@@ -1,5 +1,9 @@
 ## Change logs
 
+# v2.5.11
+* Tuned POCO F6 for the ISIS kernel
+* Tuned POCO F6 for the stock kernel again
+
 # v2.5.10
 * Adapted to run with my new module "Audio Samplerate Changer"
 
