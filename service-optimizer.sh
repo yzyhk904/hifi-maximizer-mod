@@ -34,9 +34,13 @@ function forceIgnoreAudioEffects()
         force_restart_server=1
     fi
     
-    # Stop Tensor device's AOC daemon for reducing significant jitter
+    # Stop Tensor device's AOC daemons for reducing significant jitter
     if [ "`getprop init.svc.aocd`" = "running" ]; then
         setprop ctl.stop aocd
+        force_restart_server=1
+    fi
+    if [ "`getprop init.svc.aocxd`" = "running" ]; then
+        setprop ctl.stop aocxd
         force_restart_server=1
     fi
 

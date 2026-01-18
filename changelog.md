@@ -1,8 +1,15 @@
 ## Change logs
 
+# v2.5.14
+* Optimized I/O scheduler tunables for MTK Dimensity
+* Changed the USB audio driver for Pixel 6's so as to use the USB HAL audio driver instead of the USB audio offload driver
+* Changed re-sampling parameters for Pixel 6's to use the same for cheapies
+* Fixed a bug that greater than 96 kHz sample rates had not been unlocked
+
 # v2.5.13
 * Nullifying the volume listener for no compressing audio (maybe a peak limiter) on Motorola devices
 * Changed an error message for no Magisk mirrors
+* Stop AOCXD daemon on Tensor devices
 
 # v2.5.12
 * Tuned for POCO F3 and other "kona" board devices by adjusteding their core control parameters

@@ -280,6 +280,46 @@ function makeLibraries()
     
 }
 
+function makeUnlockedLibraries()
+{
+    local MAGISKPATH="$(magisk --path)"
+    local d lname
+    
+    for d in "lib" "lib64"; do
+        for lname in "libalsautils.so" "libalsautilsv2.so"; do
+            if [ -r "${MAGISKPATH}/.magisk/mirror/vendor/${d}/${lname}" ]; then
+                mkdir -p "${MODPATH}/system/vendor/${d}"
+                patchClearLock "${MAGISKPATH}/.magisk/mirror/vendor/${d}/${lname}" "${MODPATH}/system/vendor/${d}/${lname}" "max"
+                chmod 644 "${MODPATH}/system/vendor/${d}/${lname}"
+                chcon u:object_r:vendor_file:s0 "${MODPATH}/system/vendor/${d}/${lname}"
+                chown root:root "${MODPATH}/system/vendor/${d}/${lname}"
+                chmod -R a+rX "${MODPATH}/system/vendor/${d}"
+                if [ -z "${REPLACEFILES}" ]; then
+                    REPLACEFILES="/system/vendor/${d}/${lname}"
+                else
+                    REPLACEFILES="${REPLACEFILES} /system/vendor/${d}/${lname}"
+                fi
+            fi
+        done        
+        for lname in "audio_usb_aoc.so"; do
+            if [ -r "${MAGISKPATH}/.magisk/mirror/vendor/${d}/${lname}" ]; then
+                mkdir -p "${MODPATH}/system/vendor/${d}"
+                patchClearTensorOffloadLock "${MAGISKPATH}/.magisk/mirror/vendor/${d}/${lname}" "${MODPATH}/system/vendor/${d}/${lname}"
+                chmod 644 "${MODPATH}/system/vendor/${d}/${lname}"
+                chcon u:object_r:vendor_file:s0 "${MODPATH}/system/vendor/${d}/${lname}"
+                chown root:root "${MODPATH}/system/vendor/${d}/${lname}"
+                chmod -R a+rX "${MODPATH}/system/vendor/${d}"
+                if [ -z "${REPLACEFILES}" ]; then
+                    REPLACEFILES="/system/vendor/${d}/${lname}"
+                else
+                    REPLACEFILES="${REPLACEFILES} /system/vendor/${d}/${lname}"
+                fi
+            fi
+        done        
+    done
+    
+}
+
 # Replace system property values for old Androids and some low performance SoC's
 
 function loosenedMessage()
@@ -449,6 +489,13 @@ function replaceSystemProps_Tensor()
         -e 's/vendor\.audio\.usb\.perio=.*$/vendor\.audio\.usb\.perio=2000/' \
         -e 's/vendor\.audio\.usb\.out\.period_us=.*$/vendor\.audio\.usb\.out\.period_us=2000/' \
             "$MODPATH/system.prop-workaround"
+            
+    sed -i \
+        -e 's/ro\.audio\.resampler\.psd\.enable_at_samplerate=.*$/ro\.audio\.resampler\.psd\.enable_at_samplerate=48000/' \
+        -e 's/ro\.audio\.resampler\.psd\.stopband=.*$/ro\.audio\.resampler\.psd\.stopband=194/' \
+        -e 's/ro\.audio\.resampler\.psd\.halflength=.*$/ro\.audio\.resampler\.psd\.halflength=520/' \
+        -e 's/ro\.audio\.resampler\.psd\.tbwcheat=.*$/ro\.audio\.resampler\.psd\.tbwcheat=83/' \
+            "$MODPATH/system.prop"
 }
 
 function replaceSystemProps_Others()

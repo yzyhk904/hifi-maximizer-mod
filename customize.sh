@@ -116,10 +116,18 @@ case "$configXML" in
                     DefaultVolumeFile="/vendor/etc/default_volume_tables.xml"
                 fi
 
-                sed   -e "s|%DRC_ENABLED%|$DRC_enabled|" -e "s|%USB_MODULE%|$USB_module|" -e "s|%BT_MODULE%|$BT_module|" \
-                        -e "s|%SAMPLING_RATE%|$SampleRatePrimary|" -e "s|%AUDIO_FORMAT%|$AudioFormatPrimary|" \
-                        -e "s|%VOLUME_FILE%|$VolumeFile|" -e "s|%DEFAULT_VOLUME_FILE%|$DefaultVolumeFile|" \
-                        "$MODPATH/templates/offload_hifi_playback_template.xml" >"$modConfigXML"
+	        # A USB HAL driver bug has been fixed since Dec. 2025
+	    	  if [ "`getprop ro.build.date.utc`" -lt "1762519080" ]; then
+                    sed   -e "s|%DRC_ENABLED%|$DRC_enabled|" -e "s|%USB_MODULE%|$USB_module|" -e "s|%BT_MODULE%|$BT_module|" \
+                            -e "s|%SAMPLING_RATE%|$SampleRatePrimary|" -e "s|%AUDIO_FORMAT%|$AudioFormatPrimary|" \
+                            -e "s|%VOLUME_FILE%|$VolumeFile|" -e "s|%DEFAULT_VOLUME_FILE%|$DefaultVolumeFile|" \
+                            "$MODPATH/templates/offload_hifi_playback_template.xml" >"$modConfigXML"
+                else
+                    sed   -e "s|%DRC_ENABLED%|$DRC_enabled|" -e "s|%USB_MODULE%|$USB_module|" -e "s|%BT_MODULE%|$BT_module|" \
+                            -e "s|%SAMPLING_RATE%|$SampleRatePrimary|" -e "s|%AUDIO_FORMAT%|$AudioFormatPrimary|" \
+                            -e "s|%VOLUME_FILE%|$VolumeFile|" -e "s|%DEFAULT_VOLUME_FILE%|$DefaultVolumeFile|" \
+                            "$MODPATH/templates/bypass_offload_template.xml" >"$modConfigXML"
+                fi
             fi
             chmod 644 "$modConfigXML"
             chcon u:object_r:vendor_configs_file:s0 "$modConfigXML"
@@ -142,7 +150,7 @@ case "$configXML" in
 esac
 
 # Make patched ALSA utility libraries for "ro.audio.usb.period_us"
-makeLibraries
+makeUnlockedLibraries
 
 # Remove post-A13 (especially Tensor's) spatial audio flags in an audio configuration file for avoiding errors
 deSpatializeAudioPolicyConfig "/vendor/etc/bluetooth_audio_policy_configuration_7_0.xml"
