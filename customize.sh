@@ -20,19 +20,7 @@ MAGISKTMP="$(magisk --path)/.magisk"
 # In some cases, the former may link to overlaied "/system/vendor" by Magisk itself (not mirrored original one).
 
 REPLACE=""
-
-# Replace r_submix audio policy configuration file (default)
-REPLACEFILES="
-/system/vendor/etc/r_submix_audio_policy_configuration.xml
-"
-
-for i in $REPLACEFILES; do
-    if [ -r "$i" ]; then
-        chmod 644 "${MODPATH}${i}"
-        chcon u:object_r:vendor_configs_file:s0 "${MODPATH}${i}"
-        chown root:root "${MODPATH}${i}"
-    fi
-done
+REPLACEFILES=""
 
 # Check if on a Tensor (except zumapro) device or not
 case "`getprop ro.board.platform`" in
@@ -108,6 +96,8 @@ case "$configXML" in
                 SampleRatePrimary="48000"
                 AudioFormatPrimary="AUDIO_FORMAT_PCM_32_BIT"
                 VolumeFile=$(getVolumeFile "$mirrorConfigXML")
+                templateFile="$MODPATH/templates/offload_hifi_playback_template.xml"
+                
                 if [ -z "$VolumeFile" ]; then
                     VolumeFile="/vendor/etc/audio_policy_volumes.xml"
                 fi
@@ -116,18 +106,20 @@ case "$configXML" in
                     DefaultVolumeFile="/vendor/etc/default_volume_tables.xml"
                 fi
 
-	        # A USB HAL driver bug has been fixed since Dec. 2025
-	    	  if [ "`getprop ro.build.date.utc`" -lt "1762519080" ]; then
-                    sed   -e "s|%DRC_ENABLED%|$DRC_enabled|" -e "s|%USB_MODULE%|$USB_module|" -e "s|%BT_MODULE%|$BT_module|" \
-                            -e "s|%SAMPLING_RATE%|$SampleRatePrimary|" -e "s|%AUDIO_FORMAT%|$AudioFormatPrimary|" \
-                            -e "s|%VOLUME_FILE%|$VolumeFile|" -e "s|%DEFAULT_VOLUME_FILE%|$DefaultVolumeFile|" \
-                            "$MODPATH/templates/offload_hifi_playback_template.xml" >"$modConfigXML"
-                else
-                    sed   -e "s|%DRC_ENABLED%|$DRC_enabled|" -e "s|%USB_MODULE%|$USB_module|" -e "s|%BT_MODULE%|$BT_module|" \
-                            -e "s|%SAMPLING_RATE%|$SampleRatePrimary|" -e "s|%AUDIO_FORMAT%|$AudioFormatPrimary|" \
-                            -e "s|%VOLUME_FILE%|$VolumeFile|" -e "s|%DEFAULT_VOLUME_FILE%|$DefaultVolumeFile|" \
-                            "$MODPATH/templates/bypass_offload_template.xml" >"$modConfigXML"
+                if [ "`getprop ro.build.version.codename`" = "CinnamonBun" ]; then
+                    # A17 beta3 of Pixel 6's have a bug that cannot detect any appropriate sample rate and depth of a DAC
+                    # But they can or may work for DAC's having a XMOS digital interface chip if specifying any sample rate and depth
+                    templateFile="$MODPATH/templates/bypass_offload_safer_template.xml"
+                    SampleRatePrimary="768000"
+                elif [ "`getprop ro.build.date.utc`" -ge "1762519080" ]; then
+                    # A USB HAL driver bug has been fixed since Dec. 2025
+                    templateFile="$MODPATH/templates/bypass_offload_template.xml"
                 fi
+                
+                sed   -e "s|%DRC_ENABLED%|$DRC_enabled|" -e "s|%USB_MODULE%|$USB_module|" -e "s|%BT_MODULE%|$BT_module|" \
+                        -e "s|%SAMPLING_RATE%|$SampleRatePrimary|" -e "s|%AUDIO_FORMAT%|$AudioFormatPrimary|" \
+                        -e "s|%VOLUME_FILE%|$VolumeFile|" -e "s|%DEFAULT_VOLUME_FILE%|$DefaultVolumeFile|" \
+                        "$templateFile" >"$modConfigXML"
             fi
             chmod 644 "$modConfigXML"
             chcon u:object_r:vendor_configs_file:s0 "$modConfigXML"

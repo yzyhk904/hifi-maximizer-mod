@@ -1,5 +1,8 @@
 ## Change logs
 
+# v2.5.15
+* Added a USB DAC workaround for A17 beta3 of Pixel 6's for greater than 192 kHz samplerates; they have a bug that cannot detect any appropriate sample rate and depth of a USB DAC, but they can or may work for USB DAC's having a XMOS digital interface chip if specifying any sample rate and depth
+
 # v2.5.14
 * Optimized I/O scheduler tunables for MTK Dimensity
 * Changed the USB audio driver for Pixel 6's so as to use the USB HAL audio driver instead of the USB audio offload driver
