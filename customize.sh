@@ -106,9 +106,9 @@ case "$configXML" in
                     DefaultVolumeFile="/vendor/etc/default_volume_tables.xml"
                 fi
 
-                if [ "`getprop ro.build.version.codename`" = "CinnamonBun" ]; then
-                    # A17 beta3 of Pixel 6's have a bug that cannot detect any appropriate sample rate and depth of a DAC
-                    # But they can or may work for DAC's having a XMOS digital interface chip if specifying any sample rate and depth
+                if [ "`getprop ro.build.version.release`" -ge "17" ]; then
+                    # A17 and later of Pixel 6's have a bug that cannot detect any appropriate sample rate and depth of a DAC
+                    # But they can or may work for DAC's having an XMOS digital interface chip if specifying any sample rate and depth
                     templateFile="$MODPATH/templates/bypass_offload_safer_template.xml"
                     SampleRatePrimary="768000"
                 elif [ "`getprop ro.build.date.utc`" -ge "1762519080" ]; then
