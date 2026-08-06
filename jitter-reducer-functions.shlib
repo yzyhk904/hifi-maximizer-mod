@@ -1472,19 +1472,26 @@ function getSchedulerValues()
                     "boost" )
                         case "`getSocModelName`" in
                             sm[6-8]* )
-                                echo "139 0 36 516 0"
+                                echo "141 0 36 516 0"
                                 ;;
                             sdm8[5-9]* | sdm9* )
                                 echo "145 0 36 516 0"
                                 ;;
-                            gs* )
+                            gs[12]* )
                                 echo "150 0 36 516 0"
+                                ;;
+                            gs* )
+                                # zuma and zuma pro
+                                echo "145 0 32 512 0"
                                 ;;
                             sdm8* )
                                 echo "133 0 36 516 0"
                                 ;;
                             sdm* | msm* | sd* | exynos* )
                                 echo "133 0 38 517 0"
+                                ;;
+                            mt685[0-3] )
+                                echo "151 0 36 516 0"
                                 ;;
                             mt68* )
                                 echo "149 0 36 516 0"
@@ -1502,8 +1509,12 @@ function getSchedulerValues()
                             sm[6-8]* | sdm8[5-9]* | sdm9* )
                                 echo "127 0 36 516 0"
                                 ;;
+                            gs[12]* )
+                                echo "150 0 36 516 0"
+                                ;;
                             gs* )
-                                echo "127 0 36 516 0"
+                                # zuma and zuma pro
+                                echo "145 0 32 512 0"
                                 ;;
                             sdm8* )
                                 echo "127 0 36 516 0"
@@ -1658,7 +1669,7 @@ function getSchedulerNrRequests()
                                 echo "86193"
                                 ;;
                             mt68* )
-                                echo "86181"
+                                echo "86186"
                                 ;;
                             mt67[7-9]? )
                                 echo "86181"
