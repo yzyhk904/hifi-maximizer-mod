@@ -1,8 +1,14 @@
 ## Change logs
 
+#v2.6.0
+* Tuned I/O scheduling parameters for Pixel 8's and Pixel 6's
+* Dropped a USB offload driver support for Pixel 6's (supported by a USB HAL driver up to 768kHz only now).
+
 # v2.5.16
 * Tuned I/O scheduling parameters for POCO F6, POCO F3, Motorola G54's and Pixel 6's 
 * Added a USB DAC workaround for A17 (removed for betas) of Pixel 6's for greater than 192 kHz samplerates; they have a bug that cannot detect any appropriate sample rate and depth of a USB DAC, but they can or may work for USB DAC's having a XMOS digital interface chip if specifying any sample rate and depth
+# Fixed a USB phone call bug when using a USB HAL audio driver
+* Don't try to change audio_platform_configuration.xml for AIDL only Pixels
 
 # v2.5.15
 * Added a USB DAC workaround for A17 beta3 of Pixel 6's for greater than 192 kHz samplerates; they have a bug that cannot detect any appropriate sample rate and depth of a USB DAC, but they can or may work for USB DAC's having a XMOS digital interface chip if specifying any sample rate and depth

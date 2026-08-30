@@ -24,7 +24,7 @@ REPLACEFILES=""
 
 # Check if on a Tensor (except zumapro) device or not
 case "`getprop ro.board.platform`" in
-    gs* | "zuma" )
+    gs1* )
         tensorFlag=1
         ;;
     * )
@@ -35,7 +35,7 @@ esac
 if [ "$tensorFlag" -eq 1 ]; then
     # Unlocks the limiter of Tensor device's USB offload driver from 96kHz to 192kHz
     fname="/system/vendor/etc/audio_platform_configuration.xml"
-    if [ -r "$fname" ]; then
+    if [ -r "$fname"  -a  -e "/system/vendor/lib64/audio_usb_aoc.so" ]; then
         mkdir -p "${MODPATH}${fname%/*}"
         sed -e 's|min_rate="[1-9][0-9]*"|min_rate="44100"|g' \
             -e 's|"MaxSamplingRate=[1-9][0-9]*,|"MaxSamplingRate=192000,|' \
@@ -54,7 +54,7 @@ if [ "$tensorFlag" -eq 1 ]; then
     
 fi
 
-# If detecting DRC-enabled or Tensor SoC, then make a DRC-less or Tensor specifically tuned config file and overlay
+# If detecting DRC-enabled or Tensor G101 SoC, then make a DRC-less or Tensor specifically tuned config file and overlay
 #
 # Set the active configuration file name retrieved from the audio policy server
 configXML="`getActivePolicyFile`"
@@ -93,10 +93,10 @@ case "$configXML" in
                 DRC_enabled="false"
                 USB_module="usbv2"
                 BT_module="bluetooth"
-                SampleRatePrimary="48000"
+                templateFile="$MODPATH/templates/bypass_offload_safer_template.xml"
+                SampleRatePrimary="768000"
                 AudioFormatPrimary="AUDIO_FORMAT_PCM_32_BIT"
                 VolumeFile=$(getVolumeFile "$mirrorConfigXML")
-                templateFile="$MODPATH/templates/offload_hifi_playback_template.xml"
                 
                 if [ -z "$VolumeFile" ]; then
                     VolumeFile="/vendor/etc/audio_policy_volumes.xml"
@@ -104,16 +104,6 @@ case "$configXML" in
                 DefaultVolumeFile=$(getDefaultVolumeFile "$mirrorConfigXML")
                 if [ -z "$DefaultVolumeFile" ]; then
                     DefaultVolumeFile="/vendor/etc/default_volume_tables.xml"
-                fi
-
-                if [ "`getprop ro.build.version.release`" -ge "17" ]; then
-                    # A17 and later of Pixel 6's have a bug that cannot detect any appropriate sample rate and depth of a DAC
-                    # But they can or may work for DAC's having an XMOS digital interface chip if specifying any sample rate and depth
-                    templateFile="$MODPATH/templates/bypass_offload_safer_template.xml"
-                    SampleRatePrimary="768000"
-                elif [ "`getprop ro.build.date.utc`" -ge "1762519080" ]; then
-                    # A USB HAL driver bug has been fixed since Dec. 2025
-                    templateFile="$MODPATH/templates/bypass_offload_template.xml"
                 fi
                 
                 sed   -e "s|%DRC_ENABLED%|$DRC_enabled|" -e "s|%USB_MODULE%|$USB_module|" -e "s|%BT_MODULE%|$BT_module|" \
@@ -134,10 +124,8 @@ case "$configXML" in
             fi
         fi
         ;;
-    "N/A" )
+    "N/A" | "AIDL" | * )
         # AIDL only devices or ones in some trouble
-        ;;
-    * )
         ;;
 esac
 
@@ -177,7 +165,7 @@ fi
 if "$IS64BIT"; then
     board="`getprop ro.board.platform`"
     case "$board" in
-        zuma* | "pineapple" )
+        "pineapple" )
             replaceSystemProps_VHPerf
             ;;
         "kona" | "kalama" | "shima" | "yupik" )
@@ -186,7 +174,7 @@ if "$IS64BIT"; then
         "sdm845" )
             replaceSystemProps_SDM845
             ;;
-        gs* )
+        gs* | zuma* )
             replaceSystemProps_Tensor
             ;;
         "sdm660" | "bengal" | "holi" )
